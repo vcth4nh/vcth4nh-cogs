@@ -1,0 +1,9 @@
+{
+    "author": ["vcth4nh", "_vct"],
+    "description": "Allow registering CTF contest",
+    "install_msg": "Thanks for installing. Use `[p]voicelog` to get started once the cog is loaded.",
+    "min_bot_version": "3.5.0",
+    "short": "CTF Register",
+    "tags": ["ctf", "register"],
+    "type": "COG"
+}
