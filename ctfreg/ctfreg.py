@@ -2,7 +2,7 @@ from redbot.core import Config, commands, app_commands
 
 from .command_groups import *
 from .response_embeded import *
-import ctftime
+from . import ctftime
 
 
 class CtfReg(commands.Cog):
