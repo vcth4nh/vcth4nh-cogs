@@ -1,9 +1,6 @@
-import json, datetime
-from math import ceil
 import requests
 
-from response_embeded import GeneralEmbed
-from utils import parse_ctftime_json
+from .utils import parse_ctftime_json
 
 
 def find_ctf_by_id(ctftime_id, creating=False, username=None, password=None):
