@@ -1,6 +1,6 @@
 import datetime
 
-from response_embeded import GeneralEmbed
+from .response_embeded import GeneralEmbed
 
 
 def parse_ctftime_json(data, creating=False, username=None, password=None):
