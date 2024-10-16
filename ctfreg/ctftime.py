@@ -17,8 +17,10 @@ def fetch(url):
 
 
 def find_ctf_by_id(ctftime_id: int):
-    return  fetch(f"https://ctftime.org/api/v1/events/{str(ctftime_id)}/")
-
+    try:
+        return fetch(f"https://ctftime.org/api/v1/events/{str(ctftime_id)}/")
+    except ApiNotFound:
+        return
 
 def find_ctf_by_text(search_key):
     json = fetch("https://ctftime.org/api/v1/events/?limit=1000")
