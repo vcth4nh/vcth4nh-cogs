@@ -1,6 +1,6 @@
+import discord
 from redbot.core import Config, commands, app_commands
 
-from .command_groups import *
 from .response_embeded import *
 from . import ctftime
 
@@ -14,10 +14,29 @@ class CtfReg(commands.Cog):
             self, identifier=985490701, force_registration=True
         )
 
+    reg_commands = app_commands.Group(
+        name="ctf-reg", description="CTFTime contest registration"
+    )
+    info_commands = app_commands.Group(
+        name="ctf-info", description="CTFTime contest info"
+    )
+
+    # @commands.hybrid_group(name="ctf-reg", description="CTFTime contest registration")
+    # async def reg_commands(self, ctx: commands.Context):
+    #     # if ctx.invoked_subcommand is None:
+    #     #     await ctx.send_help(ctx.command)
+    #     pass
+    #
+    # @commands.hybrid_group(name="ctf-info", description="CTFTime contest info")
+    # async def info_commands(self, ctx: commands.Context):
+    #     # if ctx.invoked_subcommand is None:
+    #     #     await ctx.send_help(ctx.command)
+    #     pass
+
     @info_commands.command(name="find")
-    async def ctf_info_find(self, ctx: commands.Context, search_key: str):
+    async def ctf_info_find(self, ctx: discord.Interaction, search_key: str):
         """[CTFTime] Tìm thông tin giải CTF"""
-        msg = await ctx.send(embed=LoadingEmbed())
+        await ctx.response.send_message(embed=LoadingEmbed())
 
         # if numeric then search by id
         if search_key.isnumeric():
@@ -26,11 +45,11 @@ class CtfReg(commands.Cog):
             ctftime_id = ctftime.find_ctf_by_text(search_key)
 
         # GET info
-        embed_var = ctftime.find_ctf_by_id(ctftime_id)
+        embed_var = SearchContestEmbed(ctftime_id)
         if embed_var:
-            await msg.edit(embed=embed_var)
+            await ctx.edit_original_response(embed=embed_var)
         else:
-            await msg.edit(embed=ErrorEmbed())
+            await ctx.edit_original_response(embed=ErrorEmbed())
 
     # @info_commands.command(name="ongoing")
     # async def ctf_info_ongo(self, ctx: commands.Context):
