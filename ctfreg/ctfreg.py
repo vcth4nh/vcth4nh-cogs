@@ -85,7 +85,7 @@ class CtfReg(commands.Cog):
         uname: str,
         password: str,
     ):
-        """[CTFTime] Đăng ký tham gia CTF"""
+        """Đăng ký tham gia CTF không có trên CTFTime"""
         await ctx.response.send(embed=LoadingEmbed())
 
     @reg_commands.command(name="unreg")
@@ -147,7 +147,7 @@ class CtfReg(commands.Cog):
     async def ctf_admin_reg(
         self, ctx: discord.Interaction, ctf_id: int, role: discord.Role
     ):
-        """"""
+        """[CTFTime] Đăng ký tham gia CTF và quản lý role"""
         await ctx.response.send(embed=LoadingEmbed())
 
     @admin_commands.command(name="reg-special")
@@ -161,7 +161,7 @@ class CtfReg(commands.Cog):
         uname: str,
         password: str,
     ):
-        """"""
+        """Đăng ký tham gia CTF không có trên CTFTime và quản lý role"""
         await ctx.response.send(embed=LoadingEmbed())
 
     @admin_commands.command(name="delete")
