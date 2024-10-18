@@ -8,6 +8,7 @@ class PaginationBtn(discord.ui.View):
         print(embed_list)
         self.total_page = len(embed_list)
         self.current_page = 0
+        self.page_number.label = f"1/{self.total_page}"
 
     @discord.ui.button(label="<", style=discord.ButtonStyle.primary)
     async def prev_btn(self, ctx: discord.Interaction):
@@ -15,7 +16,7 @@ class PaginationBtn(discord.ui.View):
 
         await ctx.message.edit(embed=self.embed_list[self.current_page], view=self)
 
-    @discord.ui.button(label="", style=discord.ButtonStyle.grey)
+    @discord.ui.button(style=discord.ButtonStyle.grey)
     async def page_number(self):
         pass
 
