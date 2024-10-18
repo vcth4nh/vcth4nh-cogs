@@ -37,8 +37,9 @@ class SearchContestResponse(GeneralResponse):
     def __init__(self, ctftime_id: int):
         super().__init__()
         data = ctftime.find_ctf_by_id(ctftime_id)
-        if not data:
-            return ErrorNotFoundResponse()
+        # TODO: Wrong 
+        # if not data:
+        #     return ErrorNotFoundResponse()
         self.embed = GeneralEmbed()
 
         list_fields = [ctftime_date, ctftime_format, ctftime_ivlink]
@@ -58,8 +59,9 @@ class OngoingContestResponse(GeneralResponse):
     def __init__(self, per_page: int = 5, all: bool = False):
         super().__init__()
         data = ctftime.get_ongoing_ctfs(all)
-        if not data:
-            return ErrorNotFoundResponse()
+        # TODO: Wrong
+        # if not data:
+        #     return ErrorNotFoundResponse()
 
         list_fields = [ctftime_date, ctftime_format]
         embed_fields = parse_ctftime_json_short(data, list_fields)
