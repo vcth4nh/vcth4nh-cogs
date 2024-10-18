@@ -33,10 +33,10 @@ def fetch_safe(url, params: dict = None, all=False):
         params = {"limit": 1000}
     try:
         data_list = fetch(url, params)
-    except Exception as e:
-        print(e)
+    except ApiNotFound | ApiNotFound as e:
+        print(e.with_traceback())
         return
-    
+
     print(data_list)
     print(data_list[0])
     print(data_list[0]["onsite"])
@@ -50,7 +50,6 @@ def fetch_safe(url, params: dict = None, all=False):
             if data["onsite"] == False and data["restrictions"] == "Open"
         ]
     )
-
 
 
 def time_within(start_time: str, end_time: str, now_time: str = None):
