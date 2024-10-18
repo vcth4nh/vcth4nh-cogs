@@ -21,7 +21,7 @@ class GeneralResponse:
             embed = self.embed
 
         if ctx.response.is_done():
-            await ctx.edit_original_response(embed=embed, **self.kwargs)
+            await ctx.edit_original_response(embed=embed, view=self.view, **self.kwargs)
         else:
             await ctx.response.send_message(embed=embed, view=self.view, **self.kwargs)
         # self.completed = True
@@ -70,6 +70,7 @@ class OngoingContestResponse(GeneralResponse):
             per_page=per_page,
         )
 
+        print(self.embed)
         self.view = PaginationBtn(self.embed)
 
 

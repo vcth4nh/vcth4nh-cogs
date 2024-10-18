@@ -5,6 +5,7 @@ import discord
 class PaginationBtn(discord.ui.View):
     def __init__(self, embed_list: List[discord.Embed]):
         super().__init__()
+        print(embed_list)
         self.total_page = len(embed_list)
         self.current_page = 0
 
