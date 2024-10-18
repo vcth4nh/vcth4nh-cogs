@@ -11,7 +11,7 @@ class GeneralResponse:
     def __init__(self):
         self.embed: GeneralEmbed | List[GeneralEmbed] = None
         self.view: discord.ui.View = None
-        self.completed: bool = False
+        # self.completed: bool = False
         self.kwargs: dict[str, Any] = {}
 
     async def send(self, ctx: discord.Interaction):
@@ -21,17 +21,16 @@ class GeneralResponse:
             embed = self.embed
 
         print(ctx.response.is_done())
-        print(self.embed.fields)
+        print(f"title: {self.embed.title}")
         if ctx.response.is_done():
             await ctx.edit_original_response(embed=embed, view=self.view, **self.kwargs)
         else:
-            # TODO: test
             await ctx.response.send_message(embed=embed, view=self.view, **self.kwargs)
-        self.completed = True
+        # self.completed = True
 
-    def __del__(self):
-        if not self.completed:
-            ErrorResponse(self.context).send()
+    # def __del__(self):
+    #     if not self.completed:
+    #         ErrorResponse().send()
 
 
 class SearchContestResponse(GeneralResponse):
