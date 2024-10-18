@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import requests
+import pytz
 
 from .error import ApiNotFound, DataNotJson
 
@@ -54,7 +55,7 @@ def time_within(start_time: str, end_time: str, now_time: str = None):
     start_time = datetime.fromisoformat(start_time)
     end_time = datetime.fromisoformat(end_time)
     if now_time is None:
-        now_time = datetime.now()
+        now_time = datetime.now().astimezone(tz=pytz.timezone("utc"))
     else:
         now_time = datetime.fromisoformat(now_time)
     return start_time < now_time < end_time
