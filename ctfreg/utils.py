@@ -32,12 +32,18 @@ def fetch_safe(url, params: dict = None, all=False):
     if params is None:
         params = {"limit": 1000}
     try:
-        data = fetch(url, params)
+        data_list = fetch(url, params)
+        print(data_list)
+        print(data_list[0])
+        print(data_list[0]["onsite"])
+        print(data_list[0]["restrictions"])
         return (
-            data
+            data_list
             if all
             else [
-                _ for _ in data if _["onsite"] == False and _["restrictions"] == "Open"
+                data
+                for data in data_list
+                if data["onsite"] == False and data["restrictions"] == "Open"
             ]
         )
     except:
