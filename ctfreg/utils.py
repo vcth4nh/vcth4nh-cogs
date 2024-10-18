@@ -33,8 +33,8 @@ def fetch_safe(url, params: dict = None, all=False):
         params = {"limit": 1000}
     try:
         data_list = fetch(url, params)
-    except ApiNotFound | ApiNotFound as e:
-        print(e.with_traceback())
+    except ApiNotFound | DataNotJson as e:
+        print(e.__traceback__)
         return
 
     print(data_list)
