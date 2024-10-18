@@ -25,7 +25,7 @@ def fetch(url, params: dict = None):
     params["limit"] = limit
     params["start"] = start
     params["end"] = end
-
+    print(params)
     data = requests.get(url, headers=headers, params=params)
     if data.status_code == 404:
         raise ApiNotFound()
