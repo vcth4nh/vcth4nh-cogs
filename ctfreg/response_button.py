@@ -30,7 +30,7 @@ class PaginationBtn(discord.ui.View):
         if page < 0:
             self.current_page = 0
             self.page_number.label = f"1/{self.total_page}"
-        elif page >= self.total_page:
+        if page >= self.total_page:
             self.current_page = self.total_page - 1
             self.page_number.label = f"{self.total_page}/{self.total_page}"
 
