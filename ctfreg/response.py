@@ -35,7 +35,7 @@ class SearchContestResponse(GeneralResponse):
     def __init__(self, ctftime_id: int):
         super().__init__()
         data = ctftime.find_ctf_by_id(ctftime_id)
-        # TODO: Wrong 
+        # TODO: Wrong
         # if not data:
         #     return ErrorNotFoundResponse()
         self.embed = GeneralEmbed()
@@ -71,7 +71,7 @@ class OngoingContestResponse(GeneralResponse):
             per_page=per_page,
         )
 
-        self.view = PaginationBtn()
+        self.view = PaginationBtn(self.embed)
 
 
 class LoadingResponse(GeneralResponse):
