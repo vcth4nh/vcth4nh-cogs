@@ -16,7 +16,7 @@ class PaginationBtn(discord.ui.View):
 
         await ctx.message.edit(embed=self.embed_list[self.current_page], view=self)
 
-    @discord.ui.button(style=discord.ButtonStyle.grey)
+    @discord.ui.button(style=discord.ButtonStyle.grey, disabled=True)
     async def page_number(self):
         pass
 
