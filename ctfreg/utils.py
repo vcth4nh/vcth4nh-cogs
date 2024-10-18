@@ -12,7 +12,10 @@ def fetch(url, params: dict = None):
     if params is None:
         params = {}
 
+    print(params)
+    print(params.get("limit", 1000))
     limit = min(1000, params.get("limit", 1000))
+    print(limit)
     start = params.get(
         "start",
         int((datetime.now() - timedelta(days=30)).astimezone(timezone.utc).timestamp()),
