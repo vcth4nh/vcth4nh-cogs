@@ -14,20 +14,21 @@ class GeneralResponse:
         self.completed: bool = False
         self.kwargs: dict[str, Any] = {}
 
-    async def send(self, context: discord.Interaction):
+    async def send(self, ctx: discord.Interaction):
         if type(self.embed) == list:
             embed = self.embed[0]
         else:
             embed = self.embed
 
-        print(context.response.is_done())
-        if context.response.is_done():
-            await context.edit_original_response(
+        print(ctx.response.is_done())
+        print(self.embed.fields)
+        if ctx.response.is_done():
+            await ctx.edit_original_response(
                 embed=embed, view=self.view, **self.kwargs
             )
         else:
             # TODO: test
-            await context.response.edit_original_response(
+            await ctx.edit_original_response(
                 embed=embed, view=self.view, **self.kwargs
             )
         self.completed = True
