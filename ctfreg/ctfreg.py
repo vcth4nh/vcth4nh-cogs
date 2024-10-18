@@ -3,7 +3,6 @@ import discord
 from redbot.core import Config, commands, app_commands
 
 from .response import *
-from . import ctftime
 
 Loading_Response = LoadingResponse()
 
