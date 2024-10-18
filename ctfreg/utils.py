@@ -13,8 +13,14 @@ def fetch(url, params: dict = None):
         params = {}
 
     limit = min(1000, params.get("limit", 1000))
-    start = params.get("start", int((datetime.now() - timedelta(days=30)).timestamp()))
-    end = params.get("end", int((datetime.now() + timedelta(days=30)).timestamp()))
+    start = params.get(
+        "start",
+        int((datetime.now() - timedelta(days=30)).astimezone(timezone.utc).timestamp()),
+    )
+    end = params.get(
+        "end",
+        int((datetime.now() + timedelta(days=30)).astimezone(timezone.utc).timestamp()),
+    )
 
     params["limit"] = limit
     params["start"] = start
