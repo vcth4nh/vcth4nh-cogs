@@ -12,7 +12,7 @@ class GeneralResponse:
         self.embed: GeneralEmbed | List[GeneralEmbed] = None
         self.view: discord.ui.View = None
         self.completed: bool = False
-        self.kwargs: Any = None
+        self.kwargs: dict[str, Any] = {}
 
     async def send(self, context: discord.Interaction):
         if type(self.embed) == list:
