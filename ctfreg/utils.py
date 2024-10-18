@@ -46,7 +46,8 @@ def fetch_safe(url, params: dict = None, all=False):
                 if data["onsite"] == False and data["restrictions"] == "Open"
             ]
         )
-    except:
+    except Exception as e:
+        print(e)
         return
 
 
