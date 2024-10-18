@@ -60,7 +60,7 @@ class OngoingContestResponse(GeneralResponse):
         # TODO: Wrong
         # if not data:
         #     return ErrorNotFoundResponse()
-
+        print(data)
         list_fields = [ctftime_date, ctftime_format]
         embed_fields = parse_ctftime_json_short(data, list_fields)
         print(embed_fields)
