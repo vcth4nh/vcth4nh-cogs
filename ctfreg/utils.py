@@ -38,10 +38,6 @@ def fetch_safe(url, params: dict = None, all=False):
         print(e.__traceback__)
         return
 
-    print(data_list)
-    print(data_list[0])
-    print(data_list[0]["onsite"])
-    print(data_list[0]["restrictions"])
     return (
         data_list
         if all
@@ -55,12 +51,12 @@ def fetch_safe(url, params: dict = None, all=False):
 
 def time_within(start_time: str, end_time: str, now_time: str = None):
     """convert to unix timestamp and compare"""
-    start_time = datetime.datetime.fromisoformat(start_time)
-    end_time = datetime.datetime.fromisoformat(end_time)
+    start_time = datetime.fromisoformat(start_time)
+    end_time = datetime.fromisoformat(end_time)
     if now_time is None:
-        now_time = datetime.datetime.now()
+        now_time = datetime.now()
     else:
-        now_time = datetime.datetime.fromisoformat(now_time)
+        now_time = datetime.fromisoformat(now_time)
     return start_time < now_time < end_time
 
 

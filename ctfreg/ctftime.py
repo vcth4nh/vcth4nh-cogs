@@ -19,10 +19,7 @@ def find_ctf_by_text(search_key, all=False):
 
 
 def get_ongoing_ctfs(limit: int = 100, all=False):
-    print("get_ongoing_ctfs start")
     data = fetch_safe(EVENT_URL, {"limit": limit}, all)
-    print("get_ongoing_ctfs 23:")
-    print(data)
     if not data:
         return
     return [x for x in data if time_within(x["start"], x["finish"])]
