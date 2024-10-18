@@ -42,9 +42,6 @@ from typing import List
 
 
 def parse_ctftime_json_long(data: dict, list_fn: List[callable]):
-    if type(data) == dict:
-        data = [data]
-
     embed_fields = []
     for fn in list_fn:
         fn(embed_fields, data)
@@ -53,9 +50,6 @@ def parse_ctftime_json_long(data: dict, list_fn: List[callable]):
 
 
 def parse_ctftime_json_short(data: List, list_fn: List[callable]):
-    if type(data) == dict:
-        data = [data]
-
     embed_fields = []
     for item in data:
         field_value = ""
