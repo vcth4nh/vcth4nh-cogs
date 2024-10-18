@@ -8,10 +8,10 @@ class PaginationBtn(discord.ui.View):
         print(embed_list)
         self.total_page = len(embed_list)
         self.current_page = 0
-        self.page_number.label = f"1/{self.total_page}"
+        self.change_page(page=0)
 
     @discord.ui.button(label="<", style=discord.ButtonStyle.primary)
-    async def prev_btn(self, ctx: discord.Interaction):
+    async def prev_btn(self, ctx: discord.Interaction, btn: discord.ui.Button):
         self.change_page(page=self.current_page - 1)
 
         await ctx.message.edit(embed=self.embed_list[self.current_page], view=self)
@@ -21,21 +21,21 @@ class PaginationBtn(discord.ui.View):
         pass
 
     @discord.ui.button(label=">", style=discord.ButtonStyle.primary)
-    async def next_btn(self, ctx: discord.Interaction):
+    async def next_btn(self, ctx: discord.Interaction, btn: discord.ui.Button):
         self.change_page(page=self.current_page + 1)
 
         await ctx.message.edit(embed=self.embed_list[self.current_page], view=self)
 
     def change_page(self, page: int):
         if page < 0:
-            self.page_number = 0
-            self.page_number.label = "1"
+            self.current_page = 0
+            self.page_number.label = f"1/{self.total_page}"
         elif page >= self.total_page:
-            self.page_number = self.total_page - 1
-            self.page_number.label = str(self.total_page)
+            self.current_page = self.total_page - 1
+            self.page_number.label = f"{self.total_page}/{self.total_page}"
 
         self.current_page = page
-        self.page_number.label = str(self.current_page + 1)
+        self.page_number.label = f"{str(self.current_page + 1)}/{self.total_page}"
         if self.current_page == 0:
             self.prev_btn.disabled = True
         elif self.current_page == self.total_page - 1:
