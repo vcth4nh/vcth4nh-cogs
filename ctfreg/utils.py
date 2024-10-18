@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import requests
 
-from ctfreg.error import ApiNotFound, DataNotJson
+from .error import ApiNotFound, DataNotJson
 
 
 def fetch(url, params: dict = None):

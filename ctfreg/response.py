@@ -3,7 +3,7 @@ import discord
 
 from .ctftime_parser import *
 from . import ctftime
-from response_embeded import GeneralEmbed, paginate_embed
+from .response_embeded import GeneralEmbed, paginate_embed
 from .response_button import *
 
 
