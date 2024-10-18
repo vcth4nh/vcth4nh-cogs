@@ -23,14 +23,10 @@ class GeneralResponse:
         print(ctx.response.is_done())
         print(self.embed.fields)
         if ctx.response.is_done():
-            await ctx.edit_original_response(
-                embed=embed, view=self.view, **self.kwargs
-            )
+            await ctx.edit_original_response(embed=embed, view=self.view, **self.kwargs)
         else:
             # TODO: test
-            await ctx.edit_original_response(
-                embed=embed, view=self.view, **self.kwargs
-            )
+            await ctx.response.send_message(embed=embed, view=self.view, **self.kwargs)
         self.completed = True
 
     def __del__(self):
