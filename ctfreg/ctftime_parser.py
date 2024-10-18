@@ -55,7 +55,7 @@ def parse_ctftime_json_short(data: List, list_fn: List[callable]):
         field_value = ""
         for fn in list_fn:
             field_value += fn(data=item) + "\n"
-        embed_fields.append({data["title"]: field_value})
+        embed_fields.append({item["title"]: field_value})
     return embed_fields
 
 
