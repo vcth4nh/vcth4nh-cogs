@@ -37,7 +37,7 @@ def fetch_safe(url, params: dict = None, all=False):
             data
             if all
             else [
-                _ for _ in data if _["onsite"] == False and _["restrictions"] == "open"
+                _ for _ in data if _["onsite"] == False and _["restrictions"] == "Open"
             ]
         )
     except:
