@@ -12,8 +12,8 @@ def fetch(url, params: dict = None):
         params = {}
 
     limit = min(1000, params.get("limit", 1000))
-    start = params.get("start", datetime.now() - timedelta(days=30))
-    end = params.get("end", datetime.now() + timedelta(days=30))
+    start = params.get("start", int((datetime.now() - timedelta(days=30)).timestamp()))
+    end = params.get("end", int((datetime.now() + timedelta(days=30)).timestamp()))
 
     params["limit"] = limit
     params["start"] = start
@@ -33,7 +33,8 @@ def fetch_safe(url, params: dict = None, all=False):
         params = {"limit": 1000}
     try:
         data_list = fetch(url, params)
-    except ApiNotFound | DataNotJson as e:
+    # TODO: handle more exceptions
+    except ApiNotFound as e:
         print(e.__traceback__)
         return
 
