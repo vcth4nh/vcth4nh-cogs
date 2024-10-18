@@ -20,8 +20,6 @@ class GeneralResponse:
         else:
             embed = self.embed
 
-        print(ctx.response.is_done())
-        print(f"title: {self.embed.title}")
         if ctx.response.is_done():
             await ctx.edit_original_response(embed=embed, view=self.view, **self.kwargs)
         else:
