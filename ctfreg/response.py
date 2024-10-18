@@ -10,7 +10,7 @@ from .response_button import *
 class GeneralResponse:
     def __init__(self):
         self.embed: GeneralEmbed | List[GeneralEmbed] = None
-        self.view: discord.ui.View = None
+        self.view: discord.ui.View = discord.utils.MISSING
         # self.completed: bool = False
         self.kwargs: dict[str, Any] = {}
 
