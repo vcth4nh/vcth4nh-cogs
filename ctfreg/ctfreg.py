@@ -39,7 +39,7 @@ class CtfReg(commands.Cog):
         # if numeric then search by id
         if not force_text and search_key.isnumeric():
             ctftime_id = int(search_key)
-            response = SearchContestResponse(ctftime_id).send(ctx)
+            await SearchContestResponse(ctftime_id).send(ctx)
         else:
             # SearchContestTextResponse(ctx, search_key).send()
             raise NotImplementedError()
