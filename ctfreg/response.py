@@ -20,12 +20,14 @@ class GeneralResponse:
         else:
             embed = self.embed
 
+        print(context.response.is_done())
         if context.response.is_done():
             await context.edit_original_response(
                 embed=embed, view=self.view, **self.kwargs
             )
         else:
-            await context.response.send_message(
+            # TODO: test
+            await context.response.edit_original_response(
                 embed=embed, view=self.view, **self.kwargs
             )
         self.completed = True
