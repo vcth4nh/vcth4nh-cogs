@@ -55,7 +55,7 @@ def parse_ctftime_json_short(data: List, list_fn: List[callable]):
         field_value = ""
         for fn in list_fn:
             field_value += fn(data=item) + "\n"
-        embed_fields.append({item["title"]: field_value})
+        embed_fields.append([item["title"], field_value])
     return embed_fields
 
 
@@ -63,7 +63,7 @@ def ctftime_cred(data):
     pass
 
 
-def ctftime_date(embed_fields: List=None, data: dict=None):
+def ctftime_date(embed_fields: List = None, data: dict = None):
     start_time = datetime.datetime.fromisoformat(data["start"])
     start_time = start_time.astimezone(pytz.timezone("Asia/Bangkok"))
     end_time = start_time + datetime.timedelta(
@@ -79,13 +79,13 @@ def ctftime_date(embed_fields: List=None, data: dict=None):
     return res
 
 
-def ctftime_rating(embed_fields: List=None, data: dict=None):
+def ctftime_rating(embed_fields: List = None, data: dict = None):
     if embed_fields:
         embed_fields.append(["Rating weight", data["weight"]])
     return data["weight"]
 
 
-def ctftime_format(embed_fields: List=None, data: dict=None):
+def ctftime_format(embed_fields: List = None, data: dict = None):
     fmat = data["format"]
     if fmat == "Attack-Defense":
         fmat += " ⚔"
@@ -104,14 +104,14 @@ def ctftime_format(embed_fields: List=None, data: dict=None):
     return fmat
 
 
-def ctftime_ivlink(embed_fields: List=None, data: dict=None):
+def ctftime_ivlink(embed_fields: List = None, data: dict = None):
     invite_link = re.findall(r"(https://discord.gg/\S+)", data["description"])
     if len(invite_link) != 0:
         embed_fields.append(["Discord", invite_link[0]])
         return invite_link[0]
 
 
-def ctftime_contest_name(embed_fields: List=None, data: dict=None):
+def ctftime_contest_name(embed_fields: List = None, data: dict = None):
     if embed_fields:
         embed_fields.append(["Contest name", data["title"]])
     return data["title"]
