@@ -1,0 +1,105 @@
+from typing import Any
+import discord
+
+from .ctftime_parser import *
+from . import ctftime
+from response_embeded import GeneralEmbed, paginate_embed
+from .response_button import *
+
+
+class GeneralResponse:
+    def __init__(self):
+        self.embed: GeneralEmbed | List[GeneralEmbed] = None
+        self.view: discord.ui.View = None
+        self.completed: bool = False
+        self.kwargs: Any = None
+
+    async def send(self, context: discord.Interaction):
+        if type(self.embed) == list:
+            embed = self.embed[0]
+        else:
+            embed = self.embed
+
+        if context.response.is_done():
+            await context.edit_original_response(
+                embed=embed, view=self.view, **self.kwargs
+            )
+        else:
+            await context.response.send_message(
+                embed=embed, view=self.view, **self.kwargs
+            )
+        self.completed = True
+
+    def __del__(self):
+        if not self.completed:
+            ErrorResponse(self.context).send()
+
+
+class SearchContestResponse(GeneralResponse):
+    def __init__(self, ctftime_id: int):
+        super().__init__()
+        data = ctftime.find_ctf_by_id(ctftime_id)
+        if not data:
+            return ErrorNotFoundResponse()
+        self.embed = GeneralEmbed()
+
+        list_fields = [ctftime_date, ctftime_format, ctftime_ivlink]
+        embed_fields = parse_ctftime_json_long(data, list_fields)
+
+        self.embed.init_attr(
+            title=data["title"],
+            description=data["url"],
+            embed_fields=embed_fields,
+            footer=data["ctftime_url"],
+            thumbnail=data["logo"],
+            color=0xD50000,
+        )
+
+
+class OngoingContestResponse(GeneralResponse):
+    def __init__(self, per_page: int = 5, all: bool = False):
+        super().__init__()
+        data = ctftime.get_ongoing_ctfs(all)
+        if not data:
+            return ErrorNotFoundResponse()
+
+        list_fields = [ctftime_date, ctftime_format]
+        embed_fields = parse_ctftime_json_short(data, list_fields)
+
+        self.embed = paginate_embed(
+            title="Ongoing contests",
+            color=0x000000,
+            embed_fields=embed_fields,
+            per_page=per_page,
+        )
+
+        self.view = PaginationBtn()
+
+
+class LoadingResponse(GeneralResponse):
+    def __init__(self):
+        super().__init__()
+        self.embed = GeneralEmbed(title="Đợi chút ...", color=0x000000)
+
+
+class EmptyResponse(GeneralResponse):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.embed = GeneralEmbed(title="Empty", color=0x000000)
+        if kwargs:
+            self.embed.init_attr(**kwargs)
+
+
+class ErrorResponse(GeneralResponse):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.embed = GeneralEmbed(
+            title=kwargs.get("title", "Error"),
+            description=kwargs.get("description", "Some error occurred"),
+            color=kwargs.get("color", 0x000000),
+        )
+
+
+class ErrorNotFoundResponse(ErrorResponse):
+    def __init__(self):
+        super().__init__(title="Error", description="Không thấy j hết...")

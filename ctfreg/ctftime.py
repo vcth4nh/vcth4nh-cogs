@@ -1,32 +1,27 @@
-import requests
-
+from . import utils
 from .error import *
 
-
-def fetch(url):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.6533.100 Safari/537.36"
-    }
-    data = requests.get(url, headers=headers)
-    if data.status_code == 404:
-        raise ApiNotFound()
-    try:
-        return data.json()
-    except:
-        raise DataNotJson()
+EVENT_URL = "https://ctftime.org/api/v1/events/"
 
 
 def find_ctf_by_id(ctftime_id: int):
-    try:
-        return fetch(f"https://ctftime.org/api/v1/events/{str(ctftime_id)}/")
-    except ApiNotFound:
-        return
+    return utils.fetch_safe(f"{EVENT_URL}{str(ctftime_id)}/", all=True)
 
-def find_ctf_by_text(search_key):
-    json = fetch("https://ctftime.org/api/v1/events/?limit=1000")
+
+# TODO: return list of contests insead of single contest id
+def find_ctf_by_text(search_key, all=False):
+    json = utils.fetch_safe(EVENT_URL, all)
     if not json:
         return 0
     for ctf in json:
         if "".join(search_key.split()).lower() in "".join(ctf["title"].split()).lower():
             return ctf["id"]
     return 0
+
+
+def get_ongoing_ctfs(limit: int = 100, all=False):
+    data = utils.fetch_safe(EVENT_URL, {"limit": limit}, all)
+    if not data:
+        return
+    return [x for x in data if utils.time_within(x["start"], x["finish"])]
+
