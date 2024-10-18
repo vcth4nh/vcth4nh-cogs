@@ -18,7 +18,10 @@ def find_ctf_by_text(search_key, all=False):
     return 0
 
 
-def get_ongoing_ctfs(limit: int = 100, all=False):
+def get_ongoing_ctfs(
+    all=False,
+    limit: int = 100,
+):
     data = fetch_safe(EVENT_URL, {"limit": limit}, all)
     print(data)
     if not data:

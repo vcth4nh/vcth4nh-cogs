@@ -56,7 +56,7 @@ class SearchContestResponse(GeneralResponse):
 class OngoingContestResponse(GeneralResponse):
     def __init__(self, per_page: int = 5, all: bool = False):
         super().__init__()
-        data = ctftime.get_ongoing_ctfs(all)
+        data = ctftime.get_ongoing_ctfs(all=all)
         # TODO: Wrong
         # if not data:
         #     return ErrorNotFoundResponse()
