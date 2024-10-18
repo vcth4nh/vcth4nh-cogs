@@ -12,10 +12,7 @@ def fetch(url, params: dict = None):
     if params is None:
         params = {}
 
-    print(params)
-    print(params.get("limit", 1000))
     limit = min(1000, params.get("limit", 1000))
-    print(limit)
     start = params.get(
         "start",
         int((datetime.now() - timedelta(days=30)).astimezone(timezone.utc).timestamp()),
@@ -28,7 +25,6 @@ def fetch(url, params: dict = None):
     params["limit"] = limit
     params["start"] = start
     params["end"] = end
-    print(params)
     data = requests.get(url, headers=headers, params=params)
     if data.status_code == 404:
         raise ApiNotFound()
@@ -67,7 +63,6 @@ def time_within(start_time: str, end_time: str, now_time: str = None):
         now_time = datetime.now().astimezone(tz=timezone.utc)
     else:
         now_time = datetime.fromisoformat(now_time)
-    print(start_time, now_time, end_time)
     return start_time < now_time < end_time
 
 

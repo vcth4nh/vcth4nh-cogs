@@ -24,6 +24,7 @@ class GeneralEmbed(discord.Embed):
             self.set_footer(text=footer)
         if thumbnail is not None:
             self.set_thumbnail(url=thumbnail)
+        print(embed_fields)
         for item in embed_fields:
             self.add_field(name=item[0], value=item[1], inline=False)
 
