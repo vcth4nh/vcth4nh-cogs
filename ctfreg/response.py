@@ -3,44 +3,41 @@ import discord
 
 from .ctftime_parser import *
 from . import ctftime
-from response_embeded import GeneralEmbed, paginate_embed
+from .response_embeded import GeneralEmbed, paginate_embed
 from .response_button import *
 
 
 class GeneralResponse:
     def __init__(self):
-        self.embed: GeneralEmbed | List[GeneralEmbed] = None
-        self.view: discord.ui.View = None
-        self.completed: bool = False
-        self.kwargs: Any = None
+        self.embed: GeneralEmbed | List[GeneralEmbed] = discord.utils.MISSING
+        self.view: discord.ui.View = discord.utils.MISSING
+        # self.completed: bool = False
+        self.kwargs: dict[str, Any] = {}
 
-    async def send(self, context: discord.Interaction):
+    async def send(self, ctx: discord.Interaction):
         if type(self.embed) == list:
             embed = self.embed[0]
         else:
             embed = self.embed
 
-        if context.response.is_done():
-            await context.edit_original_response(
-                embed=embed, view=self.view, **self.kwargs
-            )
+        if ctx.response.is_done():
+            await ctx.edit_original_response(embed=embed, view=self.view, **self.kwargs)
         else:
-            await context.response.send_message(
-                embed=embed, view=self.view, **self.kwargs
-            )
-        self.completed = True
+            await ctx.response.send_message(embed=embed, view=self.view, **self.kwargs)
+        # self.completed = True
 
-    def __del__(self):
-        if not self.completed:
-            ErrorResponse(self.context).send()
+    # def __del__(self):
+    #     if not self.completed:
+    #         ErrorResponse().send()
 
 
 class SearchContestResponse(GeneralResponse):
     def __init__(self, ctftime_id: int):
         super().__init__()
         data = ctftime.find_ctf_by_id(ctftime_id)
-        if not data:
-            return ErrorNotFoundResponse()
+        # TODO: Wrong
+        # if not data:
+        #     return ErrorNotFoundResponse()
         self.embed = GeneralEmbed()
 
         list_fields = [ctftime_date, ctftime_format, ctftime_ivlink]
@@ -59,10 +56,10 @@ class SearchContestResponse(GeneralResponse):
 class OngoingContestResponse(GeneralResponse):
     def __init__(self, per_page: int = 5, all: bool = False):
         super().__init__()
-        data = ctftime.get_ongoing_ctfs(all)
-        if not data:
-            return ErrorNotFoundResponse()
-
+        data = ctftime.get_ongoing_ctfs(all=all)
+        # TODO: Wrong
+        # if not data:
+        #     return ErrorNotFoundResponse()
         list_fields = [ctftime_date, ctftime_format]
         embed_fields = parse_ctftime_json_short(data, list_fields)
 
@@ -73,7 +70,8 @@ class OngoingContestResponse(GeneralResponse):
             per_page=per_page,
         )
 
-        self.view = PaginationBtn()
+        print(self.embed)
+        self.view = PaginationBtn(self.embed)
 
 
 class LoadingResponse(GeneralResponse):

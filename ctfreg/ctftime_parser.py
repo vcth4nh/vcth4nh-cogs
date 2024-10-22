@@ -42,9 +42,6 @@ from typing import List
 
 
 def parse_ctftime_json_long(data: dict, list_fn: List[callable]):
-    if type(data) == dict:
-        data = [data]
-
     embed_fields = []
     for fn in list_fn:
         fn(embed_fields, data)
@@ -53,15 +50,12 @@ def parse_ctftime_json_long(data: dict, list_fn: List[callable]):
 
 
 def parse_ctftime_json_short(data: List, list_fn: List[callable]):
-    if type(data) == dict:
-        data = [data]
-
     embed_fields = []
     for item in data:
         field_value = ""
         for fn in list_fn:
-            field_value += fn({}, item) + "\n"
-        embed_fields.append({data["title"]: field_value})
+            field_value += fn(data=item) + "\n"
+        embed_fields.append([item["title"], field_value])
     return embed_fields
 
 
@@ -69,7 +63,7 @@ def ctftime_cred(data):
     pass
 
 
-def ctftime_date(embed_fields: List, data):
+def ctftime_date(embed_fields: List = None, data: dict = None):
     start_time = datetime.datetime.fromisoformat(data["start"])
     start_time = start_time.astimezone(pytz.timezone("Asia/Bangkok"))
     end_time = start_time + datetime.timedelta(
@@ -80,16 +74,18 @@ def ctftime_date(embed_fields: List, data):
     formatted_end_time = end_time.strftime("%I:%M %p %m/%d/%Y %Z")
 
     res = f"Start: {formatted_start_time}\nEnd: {formatted_end_time}"
-    embed_fields.append(["Time", res])
+    if embed_fields:
+        embed_fields.append(["Time", res])
     return res
 
 
-def ctftime_rating(embed_fields: List, data):
-    embed_fields.append(["Rating weight", data["weight"]])
+def ctftime_rating(embed_fields: List = None, data: dict = None):
+    if embed_fields:
+        embed_fields.append(["Rating weight", data["weight"]])
     return data["weight"]
 
 
-def ctftime_format(embed_fields: List, data):
+def ctftime_format(embed_fields: List = None, data: dict = None):
     fmat = data["format"]
     if fmat == "Attack-Defense":
         fmat += " ⚔"
@@ -103,17 +99,19 @@ def ctftime_format(embed_fields: List, data):
     if data["restrictions"] != "Open":
         fmat += "\nRestricted (" + data["restrictions"] + ")"
 
-    embed_fields.append(["Format", fmat])
+    if embed_fields:
+        embed_fields.append(["Format", fmat])
     return fmat
 
 
-def ctftime_ivlink(embed_fields: List, data):
+def ctftime_ivlink(embed_fields: List = None, data: dict = None):
     invite_link = re.findall(r"(https://discord.gg/\S+)", data["description"])
     if len(invite_link) != 0:
         embed_fields.append(["Discord", invite_link[0]])
         return invite_link[0]
 
 
-def ctftime_contest_name(embed_fields: List, data):
-    embed_fields.append(["Contest name", data["title"]])
+def ctftime_contest_name(embed_fields: List = None, data: dict = None):
+    if embed_fields:
+        embed_fields.append(["Contest name", data["title"]])
     return data["title"]

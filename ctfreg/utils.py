@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import requests
+import pytz
 
-from ctfreg.error import ApiNotFound, DataNotJson
+from .error import ApiNotFound, DataNotJson
 
 
 def fetch(url, params: dict = None):
@@ -12,13 +13,18 @@ def fetch(url, params: dict = None):
         params = {}
 
     limit = min(1000, params.get("limit", 1000))
-    start = params.get("start", datetime.now() - timedelta(days=30))
-    end = params.get("end", datetime.now() + timedelta(days=30))
+    start = params.get(
+        "start",
+        int((datetime.now() - timedelta(days=30)).astimezone(timezone.utc).timestamp()),
+    )
+    end = params.get(
+        "end",
+        int((datetime.now() + timedelta(days=30)).astimezone(timezone.utc).timestamp()),
+    )
 
     params["limit"] = limit
     params["start"] = start
     params["end"] = end
-
     data = requests.get(url, headers=headers, params=params)
     if data.status_code == 404:
         raise ApiNotFound()
@@ -32,26 +38,31 @@ def fetch_safe(url, params: dict = None, all=False):
     if params is None:
         params = {"limit": 1000}
     try:
-        data = fetch(url, params)
-        return (
-            data
-            if all
-            else [
-                _ for _ in data if _["onsite"] == False and _["restrictions"] == "open"
-            ]
-        )
-    except:
+        data_list = fetch(url, params)
+    # TODO: handle more exceptions
+    except ApiNotFound as e:
+        print(e.__traceback__)
         return
+
+    return (
+        data_list
+        if all
+        else [
+            data
+            for data in data_list
+            if data["onsite"] == False and data["restrictions"] == "Open"
+        ]
+    )
 
 
 def time_within(start_time: str, end_time: str, now_time: str = None):
     """convert to unix timestamp and compare"""
-    start_time = datetime.datetime.fromisoformat(start_time)
-    end_time = datetime.datetime.fromisoformat(end_time)
+    start_time = datetime.fromisoformat(start_time)
+    end_time = datetime.fromisoformat(end_time)
     if now_time is None:
-        now_time = datetime.datetime.now()
+        now_time = datetime.now().astimezone(tz=timezone.utc)
     else:
-        now_time = datetime.datetime.fromisoformat(now_time)
+        now_time = datetime.fromisoformat(now_time)
     return start_time < now_time < end_time
 
 
