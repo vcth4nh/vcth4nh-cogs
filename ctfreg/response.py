@@ -31,19 +31,18 @@ class GeneralResponse:
     #         ErrorResponse().send()
 
 
-class SearchContestResponse(GeneralResponse):
+class SearchIdContestResponse(GeneralResponse):
     def __init__(self, ctftime_id: int):
         super().__init__()
+
         data = ctftime.find_ctf_by_id(ctftime_id)
-        # TODO: Wrong
-        # if not data:
-        #     return ErrorNotFoundResponse()
-        self.embed = GeneralEmbed()
+        if not data:
+            raise ErrorNotFoundResponse()
 
         list_fields = [ctftime_date, ctftime_format, ctftime_ivlink]
-        embed_fields = parse_ctftime_json_long(data, list_fields)
+        embed_fields = parse_ctftime_json_long(data, list_fields)[0]
 
-        self.embed.init_attr(
+        self.embed = GeneralEmbed().init_attr(
             title=data["title"],
             description=data["url"],
             embed_fields=embed_fields,
@@ -53,27 +52,39 @@ class SearchContestResponse(GeneralResponse):
         )
 
 
-class OngoingContestResponse(GeneralResponse):
-    def __init__(self, per_page: int = 5, all: bool = False):
+class SearchTextContestResponse(GeneralResponse):
+    def __init__(self, ctftime_text: str):
         super().__init__()
-        data = ctftime.get_ongoing_ctfs(all=all)
-        # TODO: Wrong
-        # if not data:
-        #     return ErrorNotFoundResponse()
-        list_fields = [ctftime_date, ctftime_format]
-        embed_fields = parse_ctftime_json_inline(data, list_fields)
 
-        self.embed = paginate_embed(
-            title="Ongoing contests",
-            color=0x000000,
-            embed_fields=embed_fields,
-            per_page=per_page,
-        )
+        data_list = ctftime.find_ctf_by_text(ctftime_text)
+        if not data_list:
+            raise ErrorNotFoundResponse()
+        list_fields = [ctftime_date, ctftime_format, ctftime_ivlink]
+        embed_fields_list = parse_ctftime_json_long(data_list, list_fields)
 
+        assert len(data_list) == len(embed_fields_list)
+        self.embed = self.paginate(data_list, embed_fields_list)
         self.view = PaginationBtn(self.embed)
 
+    def paginate(self, data_list, embed_fields_list):
+        result = []
+        for i in range(len(data_list)):
+            data = data_list[i]
+            embed_fields = embed_fields_list[i]
+            result.append(
+                GeneralEmbed().init_attr(
+                    title=data["title"],
+                    description=data["url"],
+                    embed_fields=embed_fields,
+                    footer=data["ctftime_url"],
+                    thumbnail=data["logo"],
+                    color=0xD50000,
+                )
+            )
+        return result
 
-class UpOrPastContestResponse(GeneralResponse):
+
+class UpOngPastContestResponse(GeneralResponse):
     def __init__(self, title: str, per_page: int = 5):
         super().__init__()
         self.embed_title = title
@@ -81,7 +92,7 @@ class UpOrPastContestResponse(GeneralResponse):
         self.data = None
 
     def init(self):
-        list_fields = [ctftime_date, ctftime_organizers]
+        list_fields = [ctftime_organizers, ctftime_date, ctftime_id]
         embed_fields = parse_ctftime_json_inline(self.data, list_fields)
         self.embed = paginate_embed(
             title=self.embed_title,
@@ -92,13 +103,22 @@ class UpOrPastContestResponse(GeneralResponse):
         self.view = PaginationBtn(self.embed)
 
 
-class UpcomingContestResponse(UpOrPastContestResponse):
+class OngoingContestResponse(UpOngPastContestResponse):
+    def __init__(self, per_page: int = 5, all: bool = False):
+        super().__init__(title="Ongoing contests", per_page=per_page)
+        data = ctftime.get_ongoing_ctfs(all=all)
+        self.data = data
+        self.init()
+
+
+class UpcomingContestResponse(UpOngPastContestResponse):
     def __init__(self, week: int = 2, per_page: int = 5, all: bool = False):
         super().__init__(title="Upcomming contests", per_page=per_page)
         self.data = ctftime.get_upcoming_ctfs(weeks=week, all=all)
         self.init()
 
-class PastContestResponse(UpOrPastContestResponse):
+
+class PastContestResponse(UpOngPastContestResponse):
     def __init__(self, week: int = 2, per_page: int = 5, all: bool = False):
         super().__init__(title="Past contests", per_page=per_page)
         self.data = ctftime.get_past_ctfs(weeks=week, all=all)

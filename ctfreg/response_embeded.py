@@ -26,13 +26,13 @@ class GeneralEmbed(discord.Embed):
             self.set_thumbnail(url=thumbnail)
         for item in embed_fields:
             self.add_field(name=item[0], value=item[1], inline=False)
+        return self
 
 
 def paginate_embed(title: str, color: int, embed_fields: List, per_page: int, **kwargs):
     embed_list = []
     for i in range(0, len(embed_fields), per_page):
-        embed = GeneralEmbed()
-        embed.init_attr(
+        embed = GeneralEmbed().init_attr(
             title=title,
             color=color,
             embed_fields=embed_fields[i : i + per_page],

@@ -2,7 +2,7 @@ import datetime
 import re
 
 import pytz
-from typing import List
+from typing import List, Dict
 
 
 """Example data:
@@ -41,12 +41,17 @@ from typing import List
 """
 
 
-def parse_ctftime_json_long(data: dict, list_fn: List[callable]):
-    embed_fields = []
-    for fn in list_fn:
-        fn(embed_fields, data)
+def parse_ctftime_json_long(data, list_fn: List[callable]) -> List[List]:
+    if isinstance(data, dict):
+        data = [data]
+    embed_fields_list = []
+    for ctf in data:
+        embed_fields = []
+        for fn in list_fn:
+            fn(embed_fields, ctf)
+        embed_fields_list.append(embed_fields)
 
-    return embed_fields
+    return embed_fields_list
 
 
 def parse_ctftime_json_inline(data_list: List, list_fn: List[callable]):
@@ -64,7 +69,7 @@ def ctftime_cred(data):
     pass
 
 
-def ctftime_date(embed_fields: List = None, data: dict = None):
+def ctftime_date(embed_fields: List = None, data: Dict = None):
     start_time = datetime.datetime.fromisoformat(data["start"])
     start_time = start_time.astimezone(pytz.timezone("Asia/Bangkok"))
     end_time = start_time + datetime.timedelta(
@@ -75,18 +80,18 @@ def ctftime_date(embed_fields: List = None, data: dict = None):
     formatted_end_time = end_time.strftime("%I:%M %p %m/%d/%Y %Z")
 
     res = f"Start: {formatted_start_time}\nEnd: {formatted_end_time}"
-    if embed_fields:
+    if embed_fields is not None:
         embed_fields.append(["Time", res])
     return res
 
 
-def ctftime_rating(embed_fields: List = None, data: dict = None):
-    if embed_fields:
+def ctftime_rating(embed_fields: List = None, data: Dict = None):
+    if embed_fields is not None:
         embed_fields.append(["Rating weight", data["weight"]])
     return data["weight"]
 
 
-def ctftime_format(embed_fields: List = None, data: dict = None):
+def ctftime_format(embed_fields: List = None, data: Dict = None):
     fmat = data["format"]
     if fmat == "Attack-Defense":
         fmat += " ⚔"
@@ -96,13 +101,14 @@ def ctftime_format(embed_fields: List = None, data: dict = None):
         fmat += " 🎯"
 
     if data["onsite"] == True:
-        fmat += "\nOn-site: " + data["location"]
+        fmat += "\nOn-site ✈️: " + data["location"]
     if data["restrictions"] != "Open":
-        fmat += "\nRestricted (" + data["restrictions"] + ")"
+        fmat += "\nRestricted 🔒: " + data["restrictions"]
 
-    if embed_fields:
+    if embed_fields is not None:
         embed_fields.append(["Format", fmat])
     return fmat
+
 
 def ctftime_format_short(data: dict):
     fmat = data["format"]
@@ -120,22 +126,32 @@ def ctftime_format_short(data: dict):
 
     return fmat
 
-def ctftime_ivlink(embed_fields: List = None, data: dict = None):
+
+def ctftime_ivlink(embed_fields: List = None, data: Dict = None):
     invite_link = re.findall(r"(https://discord.gg/\S+)", data["description"])
     if len(invite_link) != 0:
         embed_fields.append(["Discord", invite_link[0]])
         return invite_link[0]
 
 
-def ctftime_contest_name(embed_fields: List = None, data: dict = None):
-    if embed_fields:
+def ctftime_contest_name(embed_fields: List = None, data: Dict = None):
+    if embed_fields is not None:
         embed_fields.append(["Contest name", data["title"]])
     return data["title"]
 
-def ctftime_organizers(embed_fields: List = None, data: dict = None):
-    orgs = ""
+
+def ctftime_organizers(embed_fields: List = None, data: Dict = None):
+    orgs = []
     for org in data["organizers"]:
-        orgs += f"[{org['name']}](https://ctftime.org/team/{org['id']})\n"
-    if embed_fields:
+        orgs.append(f"[{org['name']}](https://ctftime.org/team/{org['id']})")
+    orgs = ", ".join(orgs)
+    if embed_fields is not None:
         embed_fields.append(["Organizers", orgs])
     return orgs
+
+
+def ctftime_id(embed_fields: List = None, data: Dict = None):
+    id_url = f"[{data['id']}]({data['ctftime_url']})"
+    if embed_fields is not None:
+        embed_fields.append(["ID", id_url])
+    return id_url

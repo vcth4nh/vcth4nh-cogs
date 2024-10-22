@@ -9,13 +9,26 @@ class Filter:
     def __init__(
         self,
         limit: int = 1000,
-        start: int = int(
-            (datetime.now() - timedelta(days=30)).astimezone(timezone.utc).timestamp()
-        ),
-        finish: int = int(
-            (datetime.now() + timedelta(days=30)).astimezone(timezone.utc).timestamp()
-        ),
+        start: int = 0,
+        finish: int = 0,
+        days: int = 0,
+        weeks: int = 0,
+        months: int = 0,
     ):
+        if not (days or weeks or months):
+            days = 30
+        
+        if days or weeks or months:
+            start = int(
+                (datetime.now() - timedelta(days=days + 30 * months, weeks=weeks))
+                .astimezone(timezone.utc)
+                .timestamp()
+            )
+            finish = int(
+                (datetime.now() + timedelta(days=days + 30 * months, weeks=weeks))
+                .astimezone(timezone.utc)
+                .timestamp()
+            )
         self.limit = min(limit, 1000)
         self.start = start
         self.finish = finish

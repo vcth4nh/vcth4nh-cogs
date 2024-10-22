@@ -28,21 +28,18 @@ class CtfReg(commands.Cog):
     )
     admin_commands = app_commands.Group(name="ctf-admin", description="Admin commands")
 
-    # TODO: use search_id and search_text var
-    @info_commands.command(name="find")
-    async def ctf_info_find(
-        self, ctx: discord.Interaction, search_key: str, force_text: bool = False
-    ):
-        """[CTFTime] Tìm thông tin giải CTF"""
-        await Loading_Response.send(ctx)
+    @info_commands.command(name="find-id")
+    async def ctf_info_find(self, ctx: discord.Interaction, ctftime_id: int):
+        """[CTFTime] Tìm thông tin giải CTF theo ID"""
 
-        # if numeric then search by id
-        if not force_text and search_key.isnumeric():
-            ctftime_id = int(search_key)
-            await SearchContestResponse(ctftime_id).send(ctx)
-        else:
-            # SearchContestTextResponse(ctx, search_key).send()
-            raise NotImplementedError()
+        await Loading_Response.send(ctx)
+        await SearchIdContestResponse(ctftime_id).send(ctx)
+
+    @info_commands.command(name="find")
+    async def ctf_info_find_text(self, ctx: discord.Interaction, ctftime_text: str):
+        """[CTFTime] Tìm thông tin giải CTF theo tên"""
+        await Loading_Response.send(ctx)
+        await SearchTextContestResponse(ctftime_text).send(ctx)
 
     @info_commands.command(name="ongo")
     async def ctf_info_ongo(

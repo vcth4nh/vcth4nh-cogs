@@ -1,4 +1,6 @@
+from typing import List
 from .utils import *
+from thefuzz import fuzz, process
 
 EVENT_URL = "https://ctftime.org/api/v1/events/"
 
@@ -7,15 +9,17 @@ def find_ctf_by_id(ctftime_id: int):
     return fetch_safe(f"{EVENT_URL}{str(ctftime_id)}/", all=True)
 
 
-# TODO: return list of contests insead of single contest id
-def find_ctf_by_text(search_key, all=False):
-    json = fetch_safe(EVENT_URL, all)
-    if not json:
-        return 0
-    for ctf in json:
-        if "".join(search_key.split()).lower() in "".join(ctf["title"].split()).lower():
-            return ctf["id"]
-    return 0
+def find_ctf_by_text(search_key: str) -> List:
+    param = Filter(limit=1000, days=365)
+    data = fetch_safe(EVENT_URL, all=True)
+    if not data:
+        return
+
+    title_list = [x["title"] for x in data]
+    result = process.extract(
+        query=search_key, choices=title_list, scorer=fuzz.token_set_ratio, limit=5
+    )
+    return [data[title_list.index(x[0])] for x in result]
 
 
 def get_ongoing_ctfs(
