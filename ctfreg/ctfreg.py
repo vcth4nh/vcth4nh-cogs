@@ -53,14 +53,28 @@ class CtfReg(commands.Cog):
         await OngoingContestResponse(per_page, all).send(ctx)
 
     @info_commands.command(name="upcom")
-    async def ctf_info_upcom(self, ctx: discord.Interaction):
+    async def ctf_info_upcom(
+        self,
+        ctx: discord.Interaction,
+        week: int = 2,
+        per_page: int = 5,
+        all: bool = False,
+    ):
         """[CTFTime] Xem các CTF sắp diễn ra"""
         await Loading_Response.send(ctx)
+        UpcomingContestResponse(week, per_page, all).send(ctx)
 
     @info_commands.command(name="past")
-    async def ctf_info_past(self, ctx: discord.Interaction):
+    async def ctf_info_past(
+        self,
+        ctx: discord.Interaction,
+        week: int = 2,
+        per_page: int = 5,
+        all: bool = False,
+    ):
         """[CTFTime] Xem các CTF đã kết thúc"""
         await Loading_Response.send(ctx)
+        PastContestResponse(week, per_page, all).send(ctx)
 
     @reg_commands.command(name="reg")
     async def ctf_reg_register(self, ctx: discord.Interaction, ctf_id: int):

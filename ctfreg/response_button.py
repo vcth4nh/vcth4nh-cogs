@@ -1,8 +1,11 @@
 from typing import List
 import discord
 
+class GeneralButton(discord.ui.View):
+    def __init__(self,timeout=3600):
+        super().__init__(timeout=timeout)
 
-class PaginationBtn(discord.ui.View):
+class PaginationBtn(GeneralButton):
     def __init__(self, embed_list: List[discord.Embed]):
         super().__init__()
         print(embed_list)

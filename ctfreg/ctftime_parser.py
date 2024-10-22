@@ -49,13 +49,14 @@ def parse_ctftime_json_long(data: dict, list_fn: List[callable]):
     return embed_fields
 
 
-def parse_ctftime_json_short(data: List, list_fn: List[callable]):
+def parse_ctftime_json_inline(data_list: List, list_fn: List[callable]):
     embed_fields = []
-    for item in data:
+    for data in data_list:
         field_value = ""
         for fn in list_fn:
-            field_value += fn(data=item) + "\n"
-        embed_fields.append([item["title"], field_value])
+            field_value += fn(data=data) + "\n"
+        format=ctftime_format_short(data)
+        embed_fields.append([f"{data["title"]} {format}", field_value])
     return embed_fields
 
 
@@ -103,6 +104,21 @@ def ctftime_format(embed_fields: List = None, data: dict = None):
         embed_fields.append(["Format", fmat])
     return fmat
 
+def ctftime_format_short(data: dict):
+    fmat = data["format"]
+    if fmat == "Attack-Defense":
+        fmat = "⚔"
+    elif fmat == "Hack quest":
+        fmat = "🌄"
+    elif fmat == "Jeopardy":
+        fmat = "🎯"
+
+    if data["onsite"] == True:
+        fmat += "✈️"
+    if data["restrictions"] != "Open":
+        fmat += "🔒"
+
+    return fmat
 
 def ctftime_ivlink(embed_fields: List = None, data: dict = None):
     invite_link = re.findall(r"(https://discord.gg/\S+)", data["description"])
@@ -115,3 +131,11 @@ def ctftime_contest_name(embed_fields: List = None, data: dict = None):
     if embed_fields:
         embed_fields.append(["Contest name", data["title"]])
     return data["title"]
+
+def ctftime_organizers(embed_fields: List = None, data: dict = None):
+    orgs = ""
+    for org in data["organizers"]:
+        orgs += f"[{org['name']}](https://ctftime.org/team/{org['id']})\n"
+    if embed_fields:
+        embed_fields.append(["Organizers", orgs])
+    return orgs

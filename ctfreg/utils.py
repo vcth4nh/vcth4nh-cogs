@@ -5,27 +5,37 @@ import pytz
 from .error import ApiNotFound, DataNotJson
 
 
-def fetch(url, params: dict = None):
+class Filter:
+    def __init__(
+        self,
+        limit: int = 1000,
+        start: int = int(
+            (datetime.now() - timedelta(days=30)).astimezone(timezone.utc).timestamp()
+        ),
+        finish: int = int(
+            (datetime.now() + timedelta(days=30)).astimezone(timezone.utc).timestamp()
+        ),
+    ):
+        self.limit = min(limit, 1000)
+        self.start = start
+        self.finish = finish
+
+    def to_dict(self):
+        return {
+            "limit": self.limit,
+            "start": self.start,
+            "finish": self.finish,
+        }
+
+
+def fetch(url, params: Filter = None):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.6533.100 Safari/537.36"
     }
+
     if params is None:
-        params = {}
-
-    limit = min(1000, params.get("limit", 1000))
-    start = params.get(
-        "start",
-        int((datetime.now() - timedelta(days=30)).astimezone(timezone.utc).timestamp()),
-    )
-    end = params.get(
-        "end",
-        int((datetime.now() + timedelta(days=30)).astimezone(timezone.utc).timestamp()),
-    )
-
-    params["limit"] = limit
-    params["start"] = start
-    params["end"] = end
-    data = requests.get(url, headers=headers, params=params)
+        params = Filter()
+    data = requests.get(url, headers=headers, params=params.to_dict())
     if data.status_code == 404:
         raise ApiNotFound()
     try:
@@ -34,9 +44,9 @@ def fetch(url, params: dict = None):
         raise DataNotJson()
 
 
-def fetch_safe(url, params: dict = None, all=False):
+def fetch_safe(url, params: Filter = None, all=False):
     if params is None:
-        params = {"limit": 1000}
+        params = Filter()
     try:
         data_list = fetch(url, params)
     # TODO: handle more exceptions
@@ -68,3 +78,7 @@ def time_within(start_time: str, end_time: str, now_time: str = None):
 
 def time_now():
     return int(datetime.now().timestamp())
+
+
+def time_now_utc():
+    return int(datetime.now().astimezone(tz=timezone.utc).timestamp())

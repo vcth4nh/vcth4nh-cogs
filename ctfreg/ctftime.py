@@ -22,7 +22,37 @@ def get_ongoing_ctfs(
     all=False,
     limit: int = 100,
 ):
-    data = fetch_safe(EVENT_URL, {"limit": limit}, all)
+    data = fetch_safe(EVENT_URL, Filter(limit=limit), all)
     if not data:
         return
     return [x for x in data if time_within(x["start"], x["finish"])]
+
+
+def get_upcoming_ctfs(
+    all=False,
+    limit: int = 100,
+    weeks: int = 2,
+):
+    start = time_now_utc()
+    finish = int(
+        (datetime.now() + timedelta(weeks=weeks)).astimezone(timezone.utc).timestamp()
+    )
+    filter = Filter(limit=limit, start=start, finish=finish)
+
+    data = fetch_safe(EVENT_URL, filter, all)
+    return data
+
+
+def get_past_ctfs(
+    all=False,
+    limit: int = 100,
+    weeks: int = 2,
+):
+    start = int(
+        (datetime.now() - timedelta(weeks=weeks)).astimezone(timezone.utc).timestamp()
+    )
+    finish = time_now_utc()
+    filter = Filter(limit=limit, start=start, finish=finish)
+
+    data = fetch_safe(EVENT_URL, filter, all)
+    return data
