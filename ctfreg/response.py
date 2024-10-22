@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict
 import discord
 
 from .ctftime_parser import *
@@ -12,7 +12,7 @@ class GeneralResponse:
         self.embed: GeneralEmbed | List[GeneralEmbed] = discord.utils.MISSING
         self.view: discord.ui.View = discord.utils.MISSING
         # self.completed: bool = False
-        self.kwargs: dict[str, Any] = {}
+        self.kwargs: Dict[str, Any] = {}
 
     async def send(self, ctx: discord.Interaction):
         if type(self.embed) == list:
@@ -70,7 +70,6 @@ class OngoingContestResponse(GeneralResponse):
             per_page=per_page,
         )
 
-        print(self.embed)
         self.view = PaginationBtn(self.embed)
 
 
@@ -90,7 +89,6 @@ class UpOrPastContestResponse(GeneralResponse):
             embed_fields=embed_fields,
             per_page=self.per_page,
         )
-        print(self.embed)
         self.view = PaginationBtn(self.embed)
 
 
