@@ -132,7 +132,6 @@ class PastContestResponse(UpOngPastContestResponse):
 class RegisterContestResponse(GeneralResponse):
     def __init__(self, ctftime_id: int, conf: Config):
         super().__init__()
-        Config.get_conf()
         data = ctftime.find_ctf_by_id(ctftime_id)
         if not data:
             raise EmptyResultExeption()
