@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 import re
 
 import pytz
@@ -70,9 +70,9 @@ def ctftime_cred(data):
 
 
 def ctftime_date(embed_fields: List = None, data: Dict = None):
-    start_time = datetime.datetime.fromisoformat(data["start"])
+    start_time = datetime.fromisoformat(data["start"])
     start_time = start_time.astimezone(pytz.timezone("Asia/Bangkok"))
-    end_time = start_time + datetime.timedelta(
+    end_time = start_time + timedelta(
         days=data["duration"]["days"], hours=data["duration"]["hours"]
     )
 

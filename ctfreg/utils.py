@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta, timezone
 import requests
-import pytz
 
-from .error import ApiNotFound, DataNotJson
+from .response import *
+from .error import ApiNotFoundExeption, DataNotJsonExeption
 
 
 class Filter:
@@ -15,9 +15,9 @@ class Filter:
         weeks: int = 0,
         months: int = 0,
     ):
-        if not (days or weeks or months):
+        if not (days or weeks or months or start or finish):
             days = 30
-        
+
         if days or weeks or months:
             start = int(
                 (datetime.now() - timedelta(days=days + 30 * months, weeks=weeks))
@@ -50,11 +50,11 @@ def fetch(url, params: Filter = None):
         params = Filter()
     data = requests.get(url, headers=headers, params=params.to_dict())
     if data.status_code == 404:
-        raise ApiNotFound()
+        raise ApiNotFoundExeption()
     try:
         return data.json()
     except:
-        raise DataNotJson()
+        raise DataNotJsonExeption()
 
 
 def fetch_safe(url, params: Filter = None, all=False):
@@ -63,7 +63,10 @@ def fetch_safe(url, params: Filter = None, all=False):
     try:
         data_list = fetch(url, params)
     # TODO: handle more exceptions
-    except ApiNotFound as e:
+    except ApiNotFoundExeption as e:
+        print(e.__traceback__)
+        return
+    except DataNotJsonExeption as e:
         print(e.__traceback__)
         return
 

@@ -1,7 +1,17 @@
 from requests.exceptions import JSONDecodeError
 
-class ApiNotFound(Exception):
+
+class CustomExeption(Exception):
     pass
 
-class DataNotJson(JSONDecodeError):
+
+class ApiNotFoundExeption(CustomExeption):
+    pass
+
+
+class DataNotJsonExeption(JSONDecodeError, CustomExeption):
+    pass
+
+
+class EmptyResultExeption(CustomExeption):
     pass

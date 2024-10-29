@@ -1,10 +1,12 @@
 from typing import Any, Dict
+from redbot.core import Config
 import discord
 
 from .ctftime_parser import *
 from . import ctftime
 from .response_embeded import GeneralEmbed, paginate_embed
 from .response_button import *
+from .error import *
 
 
 class GeneralResponse:
@@ -37,7 +39,7 @@ class SearchIdContestResponse(GeneralResponse):
 
         data = ctftime.find_ctf_by_id(ctftime_id)
         if not data:
-            raise ErrorNotFoundResponse()
+            raise EmptyResultExeption()
 
         list_fields = [ctftime_date, ctftime_format, ctftime_ivlink]
         embed_fields = parse_ctftime_json_long(data, list_fields)[0]
@@ -58,7 +60,8 @@ class SearchTextContestResponse(GeneralResponse):
 
         data_list = ctftime.find_ctf_by_text(ctftime_text)
         if not data_list:
-            raise ErrorNotFoundResponse()
+            raise EmptyResultExeption()
+
         list_fields = [ctftime_date, ctftime_format, ctftime_ivlink]
         embed_fields_list = parse_ctftime_json_long(data_list, list_fields)
 
@@ -92,6 +95,8 @@ class UpOngPastContestResponse(GeneralResponse):
         self.data = None
 
     def init(self):
+        if not self.data:
+            raise EmptyResultExeption()
         list_fields = [ctftime_organizers, ctftime_date, ctftime_id]
         embed_fields = parse_ctftime_json_inline(self.data, list_fields)
         self.embed = paginate_embed(
@@ -106,8 +111,7 @@ class UpOngPastContestResponse(GeneralResponse):
 class OngoingContestResponse(UpOngPastContestResponse):
     def __init__(self, per_page: int = 5, all: bool = False):
         super().__init__(title="Ongoing contests", per_page=per_page)
-        data = ctftime.get_ongoing_ctfs(all=all)
-        self.data = data
+        self.data = ctftime.get_ongoing_ctfs(all=all)
         self.init()
 
 
@@ -125,18 +129,39 @@ class PastContestResponse(UpOngPastContestResponse):
         self.init()
 
 
+class RegisterContestResponse(GeneralResponse):
+    def __init__(self, ctftime_id: int, conf: Config):
+        super().__init__()
+        Config.get_conf()
+        data = ctftime.find_ctf_by_id(ctftime_id)
+        if not data:
+            raise EmptyResultExeption()
+
+        self.data = data
+        self.embed = GeneralEmbed().init_attr(
+            title=data["title"],
+            description=data["url"],
+            color=0x000000,
+        )
+        self.conf = conf
+
+    def send(self, ctx: discord.Interaction):
+        super().send(ctx)
+        ctx.guild.create_role(name=self.data["title"], color=discord.Color.default())
+
+
 class LoadingResponse(GeneralResponse):
     def __init__(self):
         super().__init__()
-        self.embed = GeneralEmbed(title="Đợi chút ...", color=0x000000)
+        self.embed = GeneralEmbed(title="Đợi chút...", color=0x000000)
 
 
 class EmptyResponse(GeneralResponse):
-    def __init__(self, **kwargs):
+    def __init__(self):
         super().__init__()
-        self.embed = GeneralEmbed(title="Empty", color=0x000000)
-        if kwargs:
-            self.embed.init_attr(**kwargs)
+        self.embed = GeneralEmbed(
+            title="Error", description="Không thấy j hết...", color=0x000000
+        )
 
 
 class ErrorResponse(GeneralResponse):
@@ -147,8 +172,3 @@ class ErrorResponse(GeneralResponse):
             description=kwargs.get("description", "Some error occurred"),
             color=kwargs.get("color", 0x000000),
         )
-
-
-class ErrorNotFoundResponse(ErrorResponse):
-    def __init__(self):
-        super().__init__(title="Error", description="Không thấy j hết...")

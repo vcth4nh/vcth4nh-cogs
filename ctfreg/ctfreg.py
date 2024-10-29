@@ -1,5 +1,6 @@
-from typing import Literal, Optional
+from typing import Literal, ClassVar
 import discord
+import traceback
 from redbot.core import Config, commands, app_commands
 
 from .response import *
@@ -31,23 +32,21 @@ class CtfReg(commands.Cog):
     @info_commands.command(name="find-id")
     async def ctf_info_find(self, ctx: discord.Interaction, ctftime_id: int):
         """[CTFTime] Tìm thông tin giải CTF theo ID"""
-
-        await Loading_Response.send(ctx)
-        await SearchIdContestResponse(ctftime_id).send(ctx)
+        await try_catch_wrapper(ctx, SearchIdContestResponse, ctftime_id=ctftime_id)
 
     @info_commands.command(name="find")
     async def ctf_info_find_text(self, ctx: discord.Interaction, ctftime_text: str):
         """[CTFTime] Tìm thông tin giải CTF theo tên"""
-        await Loading_Response.send(ctx)
-        await SearchTextContestResponse(ctftime_text).send(ctx)
+        await try_catch_wrapper(
+            ctx, SearchTextContestResponse, ctftime_text=ctftime_text
+        )
 
     @info_commands.command(name="ongo")
     async def ctf_info_ongo(
         self, ctx: discord.Interaction, per_page: int = 5, all: bool = False
     ):
         """[CTFTime] Xem các CTF đang diễn ra"""
-        await Loading_Response.send(ctx)
-        await OngoingContestResponse(per_page, all).send(ctx)
+        await try_catch_wrapper(ctx, OngoingContestResponse, per_page=per_page, all=all)
 
     @info_commands.command(name="upcom")
     async def ctf_info_upcom(
@@ -58,8 +57,9 @@ class CtfReg(commands.Cog):
         all: bool = False,
     ):
         """[CTFTime] Xem các CTF sắp diễn ra"""
-        await Loading_Response.send(ctx)
-        await UpcomingContestResponse(week, per_page, all).send(ctx)
+        await try_catch_wrapper(
+            ctx, UpcomingContestResponse, week=week, per_page=per_page, all=all
+        )
 
     @info_commands.command(name="past")
     async def ctf_info_past(
@@ -70,13 +70,26 @@ class CtfReg(commands.Cog):
         all: bool = False,
     ):
         """[CTFTime] Xem các CTF đã kết thúc"""
-        await Loading_Response.send(ctx)
-        await PastContestResponse(week, per_page, all).send(ctx)
+        await try_catch_wrapper(
+            ctx, PastContestResponse, week=week, per_page=per_page, all=all
+        )
 
     @reg_commands.command(name="reg")
-    async def ctf_reg_register(self, ctx: discord.Interaction, ctf_id: int):
+    async def ctf_reg_register(
+        self,
+        ctx: discord.Interaction,
+        ctf_id: int,
+        username: str = None,
+        password: str = None,
+    ):
         """[CTFTime] Đăng ký tham gia CTF"""
-        await Loading_Response.send(ctx)
+        await try_catch_wrapper(
+            ctx,
+            RegisterContestResponse,
+            ctftime_id=ctf_id,
+            username=username,
+            password=password,
+        )
 
     @reg_commands.command(name="reg-special")
     async def ctf_reg_register(
@@ -172,3 +185,13 @@ class CtfReg(commands.Cog):
     async def ctf_admin_delete(self, ctx: discord.Interaction, ctf_id: int):
         """Xóa thông tin giải CTF trong server"""
         await Loading_Response.send(ctx)
+
+
+async def try_catch_wrapper(ctx: discord.Interaction, func: callable, **kwargs):
+
+    await Loading_Response.send(ctx)
+    try:
+        await func(**kwargs).send(ctx)
+    except EmptyResultExeption:
+        traceback.print_exc()
+        await EmptyResponse().send(ctx)
