@@ -15,3 +15,6 @@ class DataNotJsonExeption(JSONDecodeError, CustomExeption):
 
 class EmptyResultExeption(CustomExeption):
     pass
+
+class CTFRegExistExeption(CustomExeption):
+    pass

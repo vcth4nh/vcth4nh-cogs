@@ -1,22 +1,30 @@
-from typing import Literal, ClassVar
+from typing import Literal
 import discord
+from discord import Permissions
 import traceback
 from redbot.core import Config, commands, app_commands
+from redbot.core.bot import Red
 
 from .response import *
-
-Loading_Response = LoadingResponse()
+from .perm_check import *
 
 
 # TODO: split commands into multiple files
 class CtfReg(commands.Cog):
 
-    def __init__(self, bot, *args, **kwargs):
+    def __init__(self, bot: Red, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.bot = bot
         self.config = Config.get_conf(
-            self, identifier=985490701, force_registration=True
+            self, identifier=9854905156701, force_registration=True
         )
+        self.config.register_guild(
+            ctf_list={},
+        )
+
+    # # @app_commands.check(bot_in_a_guild)
+    # async def hello(self, ctx: discord.Interaction):
+    #     await ctx.response.send_message("Hello")
 
     info_commands = app_commands.Group(
         name="ctf-info", description="CTFTime contest info"
@@ -28,7 +36,20 @@ class CtfReg(commands.Cog):
         name="ctf-server", description="This server CTF registration info"
     )
     admin_commands = app_commands.Group(name="ctf-admin", description="Admin commands")
+    
+    # dev only
+    @app_commands.command(name="mass-del")
+    async def ctf_mass_del(self, ctx: discord.Interaction):
+        """Xóa tất cả thông tin giải CTF trong server"""
+        list=ctx.guild.categories
+        await ctx.response.defer()
+        for cate in list:
+            if "CTF" in cate.name:
+                for ch in cate.channels:
+                    await ch.delete()
+                await cate.delete()
 
+                
     @info_commands.command(name="find-id")
     async def ctf_info_find(self, ctx: discord.Interaction, ctftime_id: int):
         """[CTFTime] Tìm thông tin giải CTF theo ID"""
@@ -75,6 +96,8 @@ class CtfReg(commands.Cog):
         )
 
     @reg_commands.command(name="reg")
+    @app_commands.checks.bot_has_permissions(manage_channels=True, manage_roles=True)
+    @app_commands.check(guild_only)
     async def ctf_reg_register(
         self,
         ctx: discord.Interaction,
@@ -84,11 +107,13 @@ class CtfReg(commands.Cog):
     ):
         """[CTFTime] Đăng ký tham gia CTF"""
         await try_catch_wrapper(
-            ctx,
-            RegisterContestResponse,
+            ctx=ctx,
+            func=RegisterContestResponse,
+            bot_id=self.bot.application_id,
             ctftime_id=ctf_id,
             username=username,
             password=password,
+            conf=await self.get_guild_conf(ctx),
         )
 
     @reg_commands.command(name="reg-special")
@@ -185,6 +210,9 @@ class CtfReg(commands.Cog):
     async def ctf_admin_delete(self, ctx: discord.Interaction, ctf_id: int):
         """Xóa thông tin giải CTF trong server"""
         await Loading_Response.send(ctx)
+
+    async def get_guild_conf(self, ctx: discord.Interaction):
+        return self.config.guild(ctx.guild)
 
 
 async def try_catch_wrapper(ctx: discord.Interaction, func: callable, **kwargs):

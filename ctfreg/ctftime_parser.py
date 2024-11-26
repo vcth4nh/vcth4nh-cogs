@@ -65,8 +65,8 @@ def parse_ctftime_json_inline(data_list: List, list_fn: List[callable]):
     return embed_fields
 
 
-def ctftime_cred(data):
-    pass
+def ctftime_cred(embed_fields: List = None, data: Dict = None):
+    return f"Username: {data['username']}\nPassword: {data['password']}"
 
 
 def ctftime_date(embed_fields: List = None, data: Dict = None):

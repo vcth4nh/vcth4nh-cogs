@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta, timezone
 import requests
-
-from .response import *
+from json import dumps
+import discord
+from redbot.core import Config
 from .error import ApiNotFoundExeption, DataNotJsonExeption
 
 
@@ -98,3 +99,56 @@ def time_now():
 
 def time_now_utc():
     return int(datetime.now().astimezone(tz=timezone.utc).timestamp())
+
+
+class CTFRegData:
+    id: int = None
+    """
+     {
+       "ctftimeid": 1856,
+       "role": 1099364079065370716,
+       "cate": 1099364081250619392,
+       "name": "Space Heroes CTF",
+       "info_msg": 1099364086438969435,
+       "info_ch": 1099364085184872479,
+       "finish": 1683493200,
+       "archived": true
+    }
+    """
+
+    def __init__(
+        self,
+        role: int,
+        cate: int,
+        name: str,
+        info_msg: int,
+        info_ch: int,
+        finish: int,
+        archived: bool,
+        id: int = None,
+    ):  
+        if id is not None:
+            self.id: int = id
+        else :
+            self.id: int = time_now()
+        
+        self.role: int = role
+        self.cate: int = cate
+        self.name: str = name
+        self.infom: int = info_msg
+        self.channel: int = info_ch
+        self.finish: int = finish
+        self.archived: bool = archived
+
+    def generate(self):
+        return {
+            self.id: {
+                "role": self.role,
+                "cate": self.cate,
+                "name": self.name,
+                "infom": self.infom,
+                "channel": self.channel,
+                "endtime": self.finish,
+                "archived": self.archived,
+            }
+        }
