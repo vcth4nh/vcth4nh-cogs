@@ -15,11 +15,19 @@ def find_ctf_by_text(search_key: str) -> List:
     if not data:
         return
 
-    title_list = [x["title"] for x in data]
+    # title_list = [x["organizers"][] + ' ' + x["title"] for x in data]
+    search_list=[]
+    for x in data:
+        organizers_list = []
+        for org in x["organizers"]:
+            organizers_list.append(org["name"])
+        organizers = ' '.join(organizers_list)
+        search_list.append(organizers + ' ' + x["title"])
+        
     result = process.extract(
-        query=search_key, choices=title_list, scorer=fuzz.token_set_ratio, limit=5
+        query=search_key, choices=search_list, scorer=fuzz.token_set_ratio, limit=5
     )
-    return [data[title_list.index(x[0])] for x in result]
+    return [data[search_list.index(x[0])] for x in result]
 
 
 def get_ongoing_ctfs(
@@ -59,4 +67,5 @@ def get_past_ctfs(
     filter = Filter(limit=limit, start=start, finish=finish)
 
     data = fetch_safe(EVENT_URL, filter, all)
+    data.reverse()
     return data

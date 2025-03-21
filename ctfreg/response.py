@@ -15,23 +15,30 @@ class GeneralResponse:
         self.embed: GeneralEmbed | List[GeneralEmbed] = discord.utils.MISSING
         self.view: discord.ui.View = discord.utils.MISSING
         # self.completed: bool = False
-        self.kwargs: Dict[str, Any] = {}
+        # self.kwargs: Dict[str, Any] = {}
 
     async def send(self, ctx: discord.Interaction):
-        if type(self.embed) == list:
-            embed = self.embed[0]
-        else:
-            embed = self.embed
-
         if ctx.response.is_done():
-            await ctx.edit_original_response(embed=embed, view=self.view, **self.kwargs)
+            await self.edit_message(ctx, self.embed, self.view)
         else:
-            await ctx.response.send_message(embed=embed, view=self.view, **self.kwargs)
+            await self.send_message(ctx, self.embed, self.view)
         # self.completed = True
 
-    # def __del__(self):
-    #     if not self.completed:
-    #         ErrorResponse().send()
+    async def send_message(
+        self, ctx: discord.Interaction, embed: discord.Embed, view: discord.ui.View
+    ):
+        if type(embed) == list:
+            await ctx.response.send_message(embed=embed[0], view=view)
+        else:
+            await ctx.response.send_message(embed=embed, view=view)
+
+    async def edit_message(
+        self, ctx: discord.Interaction, embed: discord.Embed, view: discord.ui.View
+    ):
+        if type(embed) == list:
+            await ctx.edit_original_response(embed=embed[0], view=view)
+        else:
+            await ctx.edit_original_response(embed=embed, view=view)
 
 
 class SearchIdContestResponse(GeneralResponse):
@@ -42,8 +49,7 @@ class SearchIdContestResponse(GeneralResponse):
         if not data:
             raise EmptyResultExeption()
 
-        list_fields = [ctftime_date, ctftime_format, ctftime_ivlink]
-        embed_fields = parse_ctftime_json_long(data, list_fields)[0]
+        embed_fields = parse_ctftime_data_1(data)
 
         self.embed = GeneralEmbed().init_attr(
             title=data["title"],
@@ -63,8 +69,10 @@ class SearchTextContestResponse(GeneralResponse):
         if not data_list:
             raise EmptyResultExeption()
 
-        list_fields = [ctftime_date, ctftime_format, ctftime_ivlink]
-        embed_fields_list = parse_ctftime_json_long(data_list, list_fields)
+        embed_fields_list = []
+        for data in data_list:
+            embed_fields = parse_ctftime_data_1(data)
+            embed_fields_list.append(embed_fields)
 
         assert len(data_list) == len(embed_fields_list)
         self.embed = self.paginate(data_list, embed_fields_list)
@@ -86,6 +94,7 @@ class SearchTextContestResponse(GeneralResponse):
                 )
             )
         return result
+        # return make_chunks(result, 2)
 
 
 class UpOngPastContestResponse(GeneralResponse):
@@ -149,8 +158,8 @@ class RegisterContestResponse(GeneralResponse):
         data["username"] = username
         data["password"] = password
         self.bot_id = bot_id
-        list_fields = [ctftime_date, ctftime_cred, ctftime_format, ctftime_ivlink]
-        embed_fields = parse_ctftime_json_long(data, list_fields)[0]
+        embed_fields = parse_ctftime_json_long_upgraded(data)[0]
+        print(embed_fields)
         self.ctf_data_embed = GeneralEmbed().init_attr(
             title=data["title"],
             description=data["url"],
@@ -165,7 +174,7 @@ class RegisterContestResponse(GeneralResponse):
         self.ctf_data = CTFRegData()
 
     async def send(self, ctx: discord.Interaction):
-        try: 
+        try:
             ctf_list: dict = await self.conf.ctf_list()
             print(ctf_list)
             print(self.data["id"])
@@ -175,14 +184,18 @@ class RegisterContestResponse(GeneralResponse):
                 self.embed = Error_CTF_Exist_Response.embed
                 raise CTFRegExistExeption()
 
-            role = await ctx.guild.create_role(name=self.data["title"], mentionable=True)
+            role = await ctx.guild.create_role(
+                name=self.data["title"], mentionable=True
+            )
             cate = await ctx.guild.create_category(name=self.data["title"], position=2)
             await cate.set_permissions(
-                ctx.guild.get_member(self.bot_id), read_messages=True, send_messages=True
+                ctx.guild.get_member(self.bot_id),
+                read_messages=True,
+                send_messages=True,
             )
             await cate.set_permissions(role, read_messages=True, send_messages=True)
             await cate.set_permissions(ctx.guild.default_role, read_messages=False)
-            
+
             info = await cate.create_text_channel(name="info")
             info_msg = await info.send(embed=self.ctf_data_embed)
             await cate.create_text_channel(name="web")
@@ -190,7 +203,7 @@ class RegisterContestResponse(GeneralResponse):
             await cate.create_text_channel(name="pwn")
             await cate.create_text_channel(name="rev")
             await cate.create_text_channel(name="misc")
-            
+
             ctf_data = CTFRegData(
                 id=self.data["id"],
                 role=role.id,
@@ -201,15 +214,15 @@ class RegisterContestResponse(GeneralResponse):
                 finish=self.data["finish"],
                 archived=False,
             )
-            
+
             ctf_list.update(ctf_data.generate())
             await self.conf.ctf_list.set(ctf_list)
-            
-            self.embed=GeneralEmbed(
-            title="Xong!",
-            description=f'Đã tạo channel cho <***{self.data["title"]}***>',
-            color=0x03AC13,
-        )
+
+            self.embed = GeneralEmbed(
+                title="Xong!",
+                description=f'Đã tạo channel cho <***{self.data["title"]}***>',
+                color=0x03AC13,
+            )
         finally:
             await super().send(ctx)
 
@@ -230,18 +243,28 @@ class ErrorResponse(GeneralResponse):
         )
 
 
-class EmptyResponse(ErrorResponse):
+class EmptyResponse(GeneralResponse):
     def __init__(self):
-        super().__init__(description="Không thấy kết quả...")
+        super().__init__()
+        self.embed = GeneralEmbed(title="Không thấy kết quả", color=0x000000)
+
 
 class ErrorCTFRegExistResponse(ErrorResponse):
     def __init__(self):
         super().__init__(description="CTF đã được đăng ký")
 
+
 class ErrorCTFGeneralResponse(ErrorResponse):
     def __init__(self):
         super().__init__(description="Không thể hoàn thành reg CTF")
 
+class NotImplementedResponse(ErrorResponse):
+    def __init__(self):
+        super().__init__()
+        self.embed = GeneralEmbed(title="Chức năng chưa được triển khai...", color=0x000000)
+
+
 Loading_Response = LoadingResponse()
+Not_Implemented_Response = NotImplementedResponse()
 Error_CTF_Exist_Response = ErrorCTFRegExistResponse()
 Error_CTF_General_Response = ErrorCTFGeneralResponse()

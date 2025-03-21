@@ -25,6 +25,9 @@ class GeneralEmbed(discord.Embed):
         if thumbnail is not None:
             self.set_thumbnail(url=thumbnail)
         for item in embed_fields:
+            print("-"*30)
+            print(item[0])
+            print(item[1])
             self.add_field(name=item[0], value=item[1], inline=False)
         return self
 

@@ -54,6 +54,23 @@ def parse_ctftime_json_long(data, list_fn: List[callable]) -> List[List]:
     return embed_fields_list
 
 
+def parse_ctftime_json_long_upgraded(data) -> List[List]:
+    if isinstance(data, dict):
+        data = [data]
+    embed_fields_list = []
+    
+    for ctf_data in data:
+        embed_fields = []
+        embed_fields.append(["Time", ctftime_date(data=ctf_data)])    
+        embed_fields.append(["Rating weight", ctftime_rating(data=ctf_data)])
+        embed_fields.append(["Format", ctftime_format(data=ctf_data)])
+        embed_fields.append(["Discord", ctftime_discord_link(data=ctf_data)])
+        embed_fields.append(["Credentials", ctftime_cred(data=ctf_data)])
+        embed_fields_list.append(embed_fields)
+
+    return embed_fields_list
+
+
 def parse_ctftime_json_inline(data_list: List, list_fn: List[callable]):
     embed_fields = []
     for data in data_list:
@@ -65,33 +82,36 @@ def parse_ctftime_json_inline(data_list: List, list_fn: List[callable]):
     return embed_fields
 
 
-def ctftime_cred(embed_fields: List = None, data: Dict = None):
+def parse_ctftime_data_1(data: Dict) -> List[List]:
+    embed_fields = []
+    embed_fields.append(["Time", ctftime_date(data)])    
+    embed_fields.append(["Rating weight", ctftime_rating(data=data)])
+    embed_fields.append(["Format", ctftime_format(data=data)])
+    embed_fields.append(["Discord", ctftime_discord_link(data=data)])
+    return embed_fields
+
+
+def ctftime_cred(data: Dict = None):
     return f"Username: {data['username']}\nPassword: {data['password']}"
 
 
-def ctftime_date(embed_fields: List = None, data: Dict = None):
-    start_time = datetime.fromisoformat(data["start"])
-    start_time = start_time.astimezone(pytz.timezone("Asia/Bangkok"))
-    end_time = start_time + timedelta(
-        days=data["duration"]["days"], hours=data["duration"]["hours"]
-    )
+def ctftime_date(data: Dict = None):
+    start_time = int(datetime.fromisoformat(data["start"]).timestamp())
+    finish_time = int(datetime.fromisoformat(data["finish"]).timestamp())
 
-    formatted_start_time = start_time.strftime("%I:%M %p %m/%d/%Y %Z")
-    formatted_end_time = end_time.strftime("%I:%M %p %m/%d/%Y %Z")
-
-    res = f"Start: {formatted_start_time}\nEnd: {formatted_end_time}"
-    if embed_fields is not None:
-        embed_fields.append(["Time", res])
+    discord_start_time=f"<t:{start_time}:F>"
+    discord_start_time_remaining=f"<t:{start_time}:R>"
+    discord_finish_time=f"<t:{finish_time}:F>"
+    discord_finish_time_remaining=f"<t:{finish_time}:R>"
+    res = f"Start: {discord_start_time} ({discord_start_time_remaining})\nEnd: {discord_finish_time} ({discord_finish_time_remaining})"
     return res
 
 
-def ctftime_rating(embed_fields: List = None, data: Dict = None):
-    if embed_fields is not None:
-        embed_fields.append(["Rating weight", data["weight"]])
+def ctftime_rating(data: Dict = None):
     return data["weight"]
 
 
-def ctftime_format(embed_fields: List = None, data: Dict = None):
+def ctftime_format(data: Dict = None):
     fmat = data["format"]
     if fmat == "Attack-Defense":
         fmat += " ⚔"
@@ -105,8 +125,6 @@ def ctftime_format(embed_fields: List = None, data: Dict = None):
     if data["restrictions"] != "Open":
         fmat += "\nRestricted 🔒: " + data["restrictions"]
 
-    if embed_fields is not None:
-        embed_fields.append(["Format", fmat])
     return fmat
 
 
@@ -127,31 +145,24 @@ def ctftime_format_short(data: dict):
     return fmat
 
 
-def ctftime_ivlink(embed_fields: List = None, data: Dict = None):
+def ctftime_discord_link(data: Dict = None):
     invite_link = re.findall(r"(https://discord.gg/\S+)", data["description"])
     if len(invite_link) != 0:
-        embed_fields.append(["Discord", invite_link[0]])
         return invite_link[0]
 
 
-def ctftime_contest_name(embed_fields: List = None, data: Dict = None):
-    if embed_fields is not None:
-        embed_fields.append(["Contest name", data["title"]])
+def ctftime_contest_name(data: Dict = None):
     return data["title"]
 
 
-def ctftime_organizers(embed_fields: List = None, data: Dict = None):
+def ctftime_organizers(data: Dict = None):
     orgs = []
     for org in data["organizers"]:
         orgs.append(f"[{org['name']}](https://ctftime.org/team/{org['id']})")
     orgs = ", ".join(orgs)
-    if embed_fields is not None:
-        embed_fields.append(["Organizers", orgs])
     return orgs
 
 
-def ctftime_id(embed_fields: List = None, data: Dict = None):
+def ctftime_id(data: Dict = None):
     id_url = f"[{data['id']}]({data['ctftime_url']})"
-    if embed_fields is not None:
-        embed_fields.append(["ID", id_url])
     return id_url

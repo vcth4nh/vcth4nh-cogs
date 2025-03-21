@@ -100,6 +100,9 @@ def time_now():
 def time_now_utc():
     return int(datetime.now().astimezone(tz=timezone.utc).timestamp())
 
+def make_chunks(lst, n):
+    """Create n-sized chunks from lst."""
+    return [lst[i:i + n] for i in range(0, len(lst), n)]
 
 class CTFRegData:
     id: int = None
