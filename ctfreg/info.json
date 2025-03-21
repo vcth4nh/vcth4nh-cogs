@@ -3,7 +3,7 @@
     "description": "Allow registering CTF contest",
     "end_user_data_statement": "end user data statement",
     "install_msg": "Thanks for installing",
-    "requirements": ["pytz==2025.1"],
+    "requirements": ["pytz==2025.1", "requests==2.32.3"],
     "min_bot_version": "3.5.0",
     "short": "CTF Register",
     "tags": ["ctf", "register"],
