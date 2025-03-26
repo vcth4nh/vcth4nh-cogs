@@ -38,16 +38,16 @@ class CtfReg(commands.Cog):
     admin_commands = app_commands.Group(name="ctf-admin", description="Admin commands")
     
     # dev only
-    @app_commands.command(name="mass-del")
-    async def ctf_mass_del(self, ctx: discord.Interaction):
-        """Xóa tất cả thông tin giải CTF trong server"""
-        list=ctx.guild.categories
-        await ctx.response.defer()
-        for cate in list:
-            if "CTF" in cate.name:
-                for ch in cate.channels:
-                    await ch.delete()
-                await cate.delete()
+    # @app_commands.command(name="mass-del")
+    # async def ctf_mass_del(self, ctx: discord.Interaction):
+    #     """Xóa tất cả thông tin giải CTF trong server"""
+    #     list=ctx.guild.categories
+    #     await ctx.response.defer()
+    #     for cate in list:
+    #         if "CTF" in cate.name:
+    #             for ch in cate.channels:
+    #                 await ch.delete()
+    #             await cate.delete()
 
                 
     @info_commands.command(name="find-id")
