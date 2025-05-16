@@ -195,7 +195,7 @@ class RegisterContestResponse(GeneralResponse):
 
     async def prepare_roles(self, ctx: discord.Interaction, role_id: int) -> List[discord.Role]:
         contest_role = await ctx.guild.create_role(
-            name=self.data["title"], mentionable=True
+            name=f"CTF - {self.data['title']}", mentionable=True
         )
         if role_id:
             ctf_player_role = ctx.guild.get_role(role_id)
@@ -394,18 +394,20 @@ class DeleteContestResponse(GeneralResponse):
         if ctf_list[target_ctf_id]["cate"]:
             logger.info(f"Deleting category {ctf_list[target_ctf_id]['name']}")
             cate = ctx.guild.get_channel(ctf_list[target_ctf_id]["cate"])
-            for ch in cate.channels:
-                await ch.delete()
-            await cate.delete()
+            if cate is not None:
+                for ch in cate.channels:
+                    await ch.delete()
+                await cate.delete()
             role = ctx.guild.get_role(ctf_list[target_ctf_id]["role"])
-            await role.delete()
+            if role is not None:
+                await role.delete()
         else:
             logger.info(f"Deleting channel {ctf_list[target_ctf_id]['name']}")
             info_ch = ctx.guild.get_channel(ctf_list[target_ctf_id]["info_ch"])
             await info_ch.delete()
         
         logger.info(f"Deleting {target_ctf_id} from ctf_list")
-        ctf_list.pop(target_ctf_id)
+        ctf_list.pop(target_ctf_id, None)
         await self.conf.ctf_list.set(ctf_list)
         logger.debug(f"ctf_list: {ctf_list}")
 
