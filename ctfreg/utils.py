@@ -148,6 +148,7 @@ class CTFRegData:
     def generate(self):
         return {
             self.id: {
+                "id": self.id,
                 "role": self.role,
                 "cate": self.cate,
                 "name": self.name,
@@ -157,3 +158,21 @@ class CTFRegData:
                 "archived": self.archived,
             }
         }
+
+def search_ctf_id_from_db(ctf_list: dict, ctf_id: int) -> str:
+    id=ctf_list.get(str(ctf_id))
+    if id is not None:
+        return str(ctf_id)
+    return None
+
+def search_ctf_cate_id_from_db(ctf_list: dict, cate_id: int) -> str:
+    for ctf_id in ctf_list:
+        if ctf_list[ctf_id].get("cate")==cate_id:
+            return str(ctf_id)
+    return None
+
+def search_ctf_info_ch_from_db(ctf_list: dict, info_ch: int) -> str:
+    for ctf_id in ctf_list:
+        if ctf_list[ctf_id].get("info_ch")==info_ch:
+            return str(ctf_id)
+    return None

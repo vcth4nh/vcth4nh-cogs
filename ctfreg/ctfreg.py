@@ -279,9 +279,18 @@ class CtfReg(commands.Cog):
         await Not_Implemented_Response.send(ctx)
 
     @admin_commands.command(name="delete")
-    async def ctf_admin_delete(self, ctx: discord.Interaction, ctf_id: int):
+    @app_commands.checks.has_permissions(administrator=True)
+    async def ctf_admin_delete(self, ctx: discord.Interaction, ctf_id: int = None, confirm: bool = False, confirm_again: bool = False):
         """Xóa thông tin giải CTF trong server"""
-        await Not_Implemented_Response.send(ctx)
+        if confirm and confirm_again:
+            await try_catch_wrapper(
+                ctx=ctx,
+                func=DeleteContestResponse,
+                ctftime_id=ctf_id,
+                conf=await self.get_guild_conf(ctx),
+            )
+        else:
+            await ctx.response.send_message(f"Thêm `confirm` và `confirm_again` để xác nhận")
 
     async def get_guild_conf(self, ctx: discord.Interaction):
         return self.config.guild(ctx.guild)

@@ -28,7 +28,6 @@ class GeneralEmbed(discord.Embed):
             self.set_thumbnail(url=thumbnail)
         for item in embed_fields:
             logger.debug("-"*30)
-            logger.debug(f"{item['name']} {item['value']} {item['inline']}")
             logger.debug(item)
             logger.debug("-"*30)
             self.add_field(**item)

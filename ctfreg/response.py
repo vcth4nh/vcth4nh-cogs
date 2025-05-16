@@ -185,7 +185,7 @@ class RegisterContestResponse(GeneralResponse):
         )
         self.embed = Error_CTF_General_Response.embed
 
-        print(f"self: {self.__dict__}")
+        logger.debug(f"self: {self.__dict__}")
 
     async def check_exist(self, ctf_list: dict):
         if ctf_list.get(str(self.data["id"])) is not None:
@@ -269,6 +269,8 @@ class RegisterContestResponse(GeneralResponse):
                 await info.edit(position=0)
                 info_msg = await info.send(embed=self.ctf_data_embed)
 
+            if self.data['prizes']:
+                await info.send(f"```{self.data['prizes']}```")
             ctf_data = CTFRegData(
                 id=self.data["id"],
                 # get the role that just created
@@ -311,7 +313,6 @@ class EditCredResponse(GeneralResponse):
             return
 
         self.conf = conf
-        self.bot_id = bot_id
         self.username = username
         self.password = password
         self.url = url
@@ -322,28 +323,21 @@ class EditCredResponse(GeneralResponse):
             await super().send(ctx)
             return
 
-        info_ch=ctx.channel_id
-        logger.debug(f"info_ch: {info_ch}")
         ctf_list: dict = await self.conf.ctf_list()
-        target_ctf=None
-        for ctf in ctf_list:
-            if ctf_list[ctf].get("info_ch")==info_ch:
-                target_ctf=ctf
-                break
+        target_ctf_id=search_ctf_info_ch_from_db(ctf_list, ctx.channel.id)
 
-        if target_ctf is None:
+        if target_ctf_id is None:
             self.embed = Error_CTF_General_Response.embed
             await super().send(ctx)
             return
         
         self.embed = GeneralEmbed(
             title="Xong!",
-            description=f'Đã cập nhật thông tin đăng nhập cho <***{ctf_list[target_ctf]["name"]}***>',
+            description=f'Đã cập nhật thông tin đăng nhập cho <***{ctf_list[target_ctf_id]["name"]}***>',
             color=0x03AC13,
         )
 
-        msg = await ctx.channel.fetch_message(ctf_list[target_ctf]["info_msg"])
-        found=False
+        msg = await ctx.channel.fetch_message(ctf_list[target_ctf_id]["info_msg"])
         embed=msg.embeds[0]
         logger.debug(f"embed: {id(embed)}")
         logger.debug(f"msg.embeds[0]: {id(msg.embeds[0])}")
@@ -361,6 +355,60 @@ class EditCredResponse(GeneralResponse):
 
         await msg.edit(embed=embed)
         await super().send(ctx)
+
+class DeleteContestResponse(GeneralResponse):
+    def __init__(self, conf: Group, ctftime_id: int):
+        super().__init__()
+        self.conf = conf
+        self.ctftime_id = ctftime_id
+    
+    async def send(self, ctx):
+        ctf_list: dict = await self.conf.ctf_list()
+        print(f"ctf_list: {ctf_list}")
+        if self.ctftime_id:
+            logger.info(f"Searching for ctf_id {self.ctftime_id} in the database")
+            target_ctf_id=search_ctf_id_from_db(ctf_list, self.ctftime_id)
+        else:
+            logger.info(f"Searching for ctf_id corresponding to channel {ctx.channel.id} in the database")
+            cate_id=ctx.channel.category.id
+            quick_ctf_category_id = await self.conf.ctf_quick_contest_category_id()
+            print(type(quick_ctf_category_id))
+            logger.info(f"quick_ctf_category_id: {quick_ctf_category_id}")
+            logger.info(f"cate_id: {cate_id}")
+            logger.info(f"str(cate_id) == str(quick_ctf_category_id): {cate_id == quick_ctf_category_id}")
+            if quick_ctf_category_id is None or cate_id != quick_ctf_category_id:
+                logger.info(f"Searching for ctf_id corresponding to category {cate_id} in the database")
+                target_ctf_id=search_ctf_cate_id_from_db(ctf_list, cate_id)
+            else:
+                logger.info(f"Searching for ctf_id corresponding to channel {ctx.channel.id} in the database")
+                target_ctf_id=search_ctf_info_ch_from_db(ctf_list, ctx.channel.id)
+
+        logger.debug(f"target_ctf_id: {target_ctf_id}")
+        if target_ctf_id is None:
+            self.embed = Error_CTF_General_Response.embed
+            await super().send(ctx)
+            return
+        
+
+
+        if ctf_list[target_ctf_id]["cate"]:
+            logger.info(f"Deleting category {ctf_list[target_ctf_id]['name']}")
+            cate = ctx.guild.get_channel(ctf_list[target_ctf_id]["cate"])
+            for ch in cate.channels:
+                await ch.delete()
+            await cate.delete()
+            role = ctx.guild.get_role(ctf_list[target_ctf_id]["role"])
+            await role.delete()
+        else:
+            logger.info(f"Deleting channel {ctf_list[target_ctf_id]['name']}")
+            info_ch = ctx.guild.get_channel(ctf_list[target_ctf_id]["info_ch"])
+            await info_ch.delete()
+        
+        logger.info(f"Deleting {target_ctf_id} from ctf_list")
+        ctf_list.pop(target_ctf_id)
+        await self.conf.ctf_list.set(ctf_list)
+        logger.debug(f"ctf_list: {ctf_list}")
+
 
 class LoadingResponse(GeneralResponse):
     def __init__(self):
