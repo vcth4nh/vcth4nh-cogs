@@ -35,39 +35,38 @@ class CtfReg(commands.Cog):
 
 
     info_commands = app_commands.Group(
-        name="ctf-info", description="CTFTime contest info"
+        name="ctf-info", description="CTFTime contest info", guild_only=True,
     )
     reg_commands = app_commands.Group(
-        name="ctf-reg", description="CTFTime contest registration"
+        name="ctf-reg", description="CTFTime contest registration", guild_only=True
     )
     server_commands = app_commands.Group(
-        name="ctf-server", description="This server CTF registration info"
-    )
-    admin_commands = app_commands.Group(name="ctf-admin", description="Admin commands")
-    conf_commands = app_commands.Group(name="ctf-conf", description="Server configuration")
+        name="ctf-server", description="This server CTF registration info", guild_only=True)
+    admin_commands = app_commands.Group(name="ctf-admin", description="Admin commands", guild_only=True)
+    conf_commands = app_commands.Group(name="ctf-conf", description="Server configuration", guild_only=True)
 
     # dev only
-    @app_commands.checks.has_permissions(administrator=True)
-    @app_commands.command(name="mass-del")
-    async def ctf_mass_del(self, ctx: discord.Interaction):
-        """Xóa tất cả thông tin giải CTF trong server"""
-        if not ctx.guild.id == 990081200414687314:
-            await ctx.response.send_message("This command is only available in the development server")
-            return
+    # @app_commands.checks.has_permissions(administrator=True)
+    # @app_commands.command(name="mass-del")
+    # async def ctf_mass_del(self, ctx: discord.Interaction):
+    #     """Xóa tất cả thông tin giải CTF trong server"""
+    #     if not ctx.guild.id == 990081200414687314:
+    #         await ctx.response.send_message("This command is only available in the development server")
+    #         return
 
-        list=ctx.guild.categories
-        # await ctx.response.defer()
-        await ctx.response.send_message(content="Đang xóa tất cả thông tin giải CTF trong server")
+    #     list=ctx.guild.categories
+    #     # await ctx.response.defer()
+    #     await ctx.response.send_message(content="Đang xóa tất cả thông tin giải CTF trong server")
 
-        for cate in list:
-            if "CTF" in cate.name:
-                for ch in cate.channels:
-                    await ch.delete()
-                await cate.delete()
-        for role in ctx.guild.roles:
-            if "CTF" in role.name:
-                await role.delete()
-        await self.config.guild(ctx.guild).ctf_list.clear()
+    #     for cate in list:
+    #         if "CTF" in cate.name:
+    #             for ch in cate.channels:
+    #                 await ch.delete()
+    #             await cate.delete()
+    #     for role in ctx.guild.roles:
+    #         if "CTF" in role.name:
+    #             await role.delete()
+    #     await self.config.guild(ctx.guild).ctf_list.clear()
 
     @conf_commands.command(name="set-ctf-player-role")
     async def ctf_conf_set_ctf_player_role(self, ctx: discord.Interaction, role: discord.Role):
@@ -140,7 +139,6 @@ class CtfReg(commands.Cog):
 
     @reg_commands.command(name="reg")
     @app_commands.checks.bot_has_permissions(manage_channels=True, manage_roles=True)
-    @app_commands.check(guild_only)
     async def ctf_reg_register(
         self,
         ctx: discord.Interaction,
@@ -176,7 +174,6 @@ class CtfReg(commands.Cog):
         )
 
     @reg_commands.command(name="edit-cred")
-    @app_commands.check(guild_only)
     async def ctf_reg_edit_cred(
         self,
         ctx: discord.Interaction,
