@@ -152,8 +152,10 @@ class RegisterContestResponse(GeneralResponse):
         password: str = None,
         bot_id: int = None,
         url: str = None,
+        quick: bool = False,
     ):
         super().__init__()
+        self.quick = quick
         data = ctftime.find_ctf_by_id(ctftime_id)
         if not data:
             raise EmptyResultExeption()
@@ -182,6 +184,8 @@ class RegisterContestResponse(GeneralResponse):
             color=0xD50000,
         )
         self.embed = Error_CTF_General_Response.embed
+
+        print(f"self: {self.__dict__}")
 
     async def check_exist(self, ctf_list: dict):
         if ctf_list.get(str(self.data["id"])) is not None:
@@ -253,14 +257,23 @@ class RegisterContestResponse(GeneralResponse):
             await self.check_exist(ctf_list)
             logger.debug(f"ctf_list: {ctf_list}")
             logger.debug(f"self.data: {self.data}")
-            role_lists = await self.prepare_roles(ctx, await self.conf.ctf_player_role_id())
-            cate, info, info_msg = await self.create_category(role_lists, ctx)
+            if not self.quick:
+                logger.info(f"Creating full category for {self.data['title']}")
+                role_lists = await self.prepare_roles(ctx, await self.conf.ctf_player_role_id())
+                cate, info, info_msg = await self.create_category(role_lists, ctx)
+            else:
+                logger.info(f"Creating channel in quick category for {self.data['title']}")
+                quick_ctf_category_id = await self.conf.ctf_quick_contest_category_id()
+                cate = ctx.guild.get_channel(quick_ctf_category_id)
+                info = await cate.create_text_channel(name=self.data["title"][:60])
+                await info.edit(position=0)
+                info_msg = await info.send(embed=self.ctf_data_embed)
 
             ctf_data = CTFRegData(
                 id=self.data["id"],
                 # get the role that just created
-                role=role_lists[0].id,
-                cate=cate.id,
+                role=role_lists[0].id if not self.quick else None,
+                cate=cate.id if not self.quick else None,
                 name=self.data["title"],
                 info_msg=info_msg.id,
                 info_ch=info.id,

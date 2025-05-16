@@ -160,6 +160,20 @@ class CtfReg(commands.Cog):
             url=url,
             conf=await self.get_guild_conf(ctx),
         )
+    @reg_commands.command(name="reg-quick")
+    async def ctf_reg_register_quick(self, ctx: discord.Interaction, ctf_id: int, username: str = None, password: str = None, url: str = None):
+        """[CTFTime] Đăng ký tham gia CTF nhanh"""
+        await try_catch_wrapper(
+            ctx=ctx,
+            func=RegisterContestResponse,
+            bot_id=self.bot.application_id,
+            ctftime_id=ctf_id,
+            username=username,
+            password=password,
+            url=url,
+            conf=await self.get_guild_conf(ctx),
+            quick=True,
+        )
 
     @reg_commands.command(name="edit-cred")
     @app_commands.check(guild_only)
