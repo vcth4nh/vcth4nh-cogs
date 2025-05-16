@@ -7,6 +7,13 @@ from redbot.core.bot import Red
 
 from .response import *
 from .perm_check import *
+import logging
+
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S')
+logger = logging.getLogger(__name__)
 
 
 # TODO: split commands into multiple files
@@ -20,11 +27,12 @@ class CtfReg(commands.Cog):
         )
         self.config.register_guild(
             ctf_list={},
+            ctf_player_role_id=None,
+            # all ctf will be created below this category
+            ctf_category_location_id=None,
+            ctf_quick_contest_category_id=None,
         )
 
-    # # @app_commands.check(bot_in_a_guild)
-    # async def hello(self, ctx: discord.Interaction):
-    #     await ctx.response.send_message("Hello")
 
     info_commands = app_commands.Group(
         name="ctf-info", description="CTFTime contest info"
@@ -36,20 +44,53 @@ class CtfReg(commands.Cog):
         name="ctf-server", description="This server CTF registration info"
     )
     admin_commands = app_commands.Group(name="ctf-admin", description="Admin commands")
-    
-    # dev only
-    # @app_commands.command(name="mass-del")
-    # async def ctf_mass_del(self, ctx: discord.Interaction):
-    #     """Xóa tất cả thông tin giải CTF trong server"""
-    #     list=ctx.guild.categories
-    #     await ctx.response.defer()
-    #     for cate in list:
-    #         if "CTF" in cate.name:
-    #             for ch in cate.channels:
-    #                 await ch.delete()
-    #             await cate.delete()
+    conf_commands = app_commands.Group(name="ctf-conf", description="Server configuration")
 
-                
+    # dev only
+    @app_commands.checks.has_permissions(administrator=True)
+    @app_commands.command(name="mass-del")
+    async def ctf_mass_del(self, ctx: discord.Interaction):
+        """Xóa tất cả thông tin giải CTF trong server"""
+        if not ctx.guild.id == 990081200414687314:
+            await ctx.response.send_message("This command is only available in the development server")
+            return
+
+        list=ctx.guild.categories
+        # await ctx.response.defer()
+        await ctx.response.send_message(content="Đang xóa tất cả thông tin giải CTF trong server")
+
+        for cate in list:
+            if "CTF" in cate.name:
+                for ch in cate.channels:
+                    await ch.delete()
+                await cate.delete()
+        for role in ctx.guild.roles:
+            if "CTF" in role.name:
+                await role.delete()
+        await self.config.guild(ctx.guild).ctf_list.clear()
+
+    @conf_commands.command(name="set-ctf-player-role")
+    async def ctf_conf_set_ctf_player_role(self, ctx: discord.Interaction, role: discord.Role):
+        """Set the role for CTF players"""
+        # should use a Response object
+        await self.config.guild(ctx.guild).ctf_player_role_id.set(role.id)
+        await ctx.response.send_message(f"Set the role for CTF players to <@&{role.id}>")
+
+    @conf_commands.command(name="set-ctf-category-location")
+    async def ctf_conf_set_ctf_category_location(self, ctx: discord.Interaction, category: discord.CategoryChannel):
+        """Set the location for new CTF categories"""
+        await self.config.guild(ctx.guild).ctf_category_location_id.set(category.id)
+        await ctx.response.send_message(f"CTF categories will be created below <#{category.id}>")
+
+    @conf_commands.command(name="set-ctf-quick-contest-category")
+    async def ctf_conf_set_ctf_quick_contest_category(self, ctx: discord.Interaction, category: discord.CategoryChannel = None):
+        """Set the category for quick CTF contests"""
+        if category is None:
+            category = await ctx.guild.create_category(name="Quick CTF contests")
+        
+        await self.config.guild(ctx.guild).ctf_quick_contest_category_id.set(category.id)
+        await ctx.response.send_message(f"Quick CTF contests will be created in <#{category.id}>")
+
     @info_commands.command(name="find-id")
     async def ctf_info_find(self, ctx: discord.Interaction, ctftime_id: int):
         """[CTFTime] Tìm thông tin giải CTF theo ID"""
@@ -64,22 +105,23 @@ class CtfReg(commands.Cog):
 
     @info_commands.command(name="ongo")
     async def ctf_info_ongo(
-        self, ctx: discord.Interaction, per_page: int = 5, all: bool = False
+        self, ctx: discord.Interaction, per_page: int = 4, all: bool = False, prize: bool = False
     ):
         """[CTFTime] Xem các CTF đang diễn ra"""
-        await try_catch_wrapper(ctx, OngoingContestResponse, per_page=per_page, all=all)
+        await try_catch_wrapper(ctx, OngoingContestResponse, per_page=per_page, all=all, prize=prize)
 
     @info_commands.command(name="upcom")
     async def ctf_info_upcom(
         self,
         ctx: discord.Interaction,
         week: int = 2,
-        per_page: int = 5,
+        per_page: int = 4,
         all: bool = False,
+        prize: bool = False,
     ):
         """[CTFTime] Xem các CTF sắp diễn ra"""
         await try_catch_wrapper(
-            ctx, UpcomingContestResponse, week=week, per_page=per_page, all=all
+            ctx, UpcomingContestResponse, week=week, per_page=per_page, all=all, prize=prize
         )
 
     @info_commands.command(name="past")
@@ -87,12 +129,13 @@ class CtfReg(commands.Cog):
         self,
         ctx: discord.Interaction,
         week: int = 2,
-        per_page: int = 5,
+        per_page: int = 4,
         all: bool = False,
+        prize: bool = False,
     ):
         """[CTFTime] Xem các CTF đã kết thúc"""
         await try_catch_wrapper(
-            ctx, PastContestResponse, week=week, per_page=per_page, all=all
+            ctx, PastContestResponse, week=week, per_page=per_page, all=all, prize=prize
         )
 
     @reg_commands.command(name="reg")
@@ -104,6 +147,7 @@ class CtfReg(commands.Cog):
         ctf_id: int,
         username: str = None,
         password: str = None,
+        url: str = None,
     ):
         """[CTFTime] Đăng ký tham gia CTF"""
         await try_catch_wrapper(
@@ -113,6 +157,27 @@ class CtfReg(commands.Cog):
             ctftime_id=ctf_id,
             username=username,
             password=password,
+            url=url,
+            conf=await self.get_guild_conf(ctx),
+        )
+
+    @reg_commands.command(name="edit-cred")
+    @app_commands.check(guild_only)
+    async def ctf_reg_edit_cred(
+        self,
+        ctx: discord.Interaction,
+        username: str = None,
+        password: str = None,
+        url: str = None,
+    ):
+        """[CTFTime] Chỉnh sửa thông tin đăng nhập"""
+        await try_catch_wrapper(
+            ctx=ctx,
+            func=EditCredResponse,
+            bot_id=self.bot.application_id,
+            username=username,
+            password=password,
+            url=url,
             conf=await self.get_guild_conf(ctx),
         )
 
@@ -133,13 +198,6 @@ class CtfReg(commands.Cog):
     @reg_commands.command(name="unreg")
     async def ctf_reg_unregister(self, ctx: discord.Interaction, ctf_id: int):
         """[CTFTime] Hủy đăng ký tham gia CTF"""
-        await Not_Implemented_Response.send(ctx)
-
-    @reg_commands.command(name="edit-cred")
-    async def ctf_reg_add_cred(
-        self, ctx: discord.Interaction, uname: str, password: str
-    ):
-        """[CTFTime] Thêm thông tin đăng nhập"""
         await Not_Implemented_Response.send(ctx)
 
     @server_commands.command(name="list")
@@ -216,7 +274,6 @@ class CtfReg(commands.Cog):
 
 
 async def try_catch_wrapper(ctx: discord.Interaction, func: callable, **kwargs):
-
     await Loading_Response.send(ctx)
     try:
         await func(**kwargs).send(ctx)

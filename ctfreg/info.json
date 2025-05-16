@@ -6,6 +6,6 @@
     "requirements": ["pytz==2025.1", "requests==2.32.3", "thefuzz==0.22.1"],
     "min_bot_version": "3.5.0",
     "short": "CTF Register",
-    "tags": ["ctf", "register"],
+    "tags": ["ctf", "ctftime", "ctf registering"],
     "type": "COG"
 }

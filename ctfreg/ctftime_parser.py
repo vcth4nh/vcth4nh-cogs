@@ -40,60 +40,65 @@ from typing import List, Dict
 }
 """
 
+def parse_ctftime_data_reg(data: Dict) -> List[Dict]:
+    embed_fields = []
+    embed_fields.append({"name": "Time", "value": ctftime_date(data=data), "inline": False})    
+    embed_fields.append({"name": "Format", "value": ctftime_format(data=data), "inline": True})
+    embed_fields.append({"name": "Rating weight", "value": ctftime_rating(data=data), "inline": True})
+    embed_fields.append({"name": "Participants", "value": ctftime_participants(data=data), "inline": True})
+    if "discord_link" in data:
+        embed_fields.append({"name": "Discord", "value": data["discord_link"], "inline": False})
+    if "credentials" in data:
+        embed_fields.append({"name": "Credentials", "value": ctftime_cred(data=data), "inline": False})
+    return embed_fields
 
-def parse_ctftime_json_long(data, list_fn: List[callable]) -> List[List]:
-    if isinstance(data, dict):
-        data = [data]
-    embed_fields_list = []
-    for ctf in data:
-        embed_fields = []
-        for fn in list_fn:
-            fn(embed_fields, ctf)
-        embed_fields_list.append(embed_fields)
-
-    return embed_fields_list
-
-
-def parse_ctftime_json_long_upgraded(data) -> List[List]:
-    if isinstance(data, dict):
-        data = [data]
-    embed_fields_list = []
-    
-    for ctf_data in data:
-        embed_fields = []
-        embed_fields.append(["Time", ctftime_date(data=ctf_data)])    
-        embed_fields.append(["Rating weight", ctftime_rating(data=ctf_data)])
-        embed_fields.append(["Format", ctftime_format(data=ctf_data)])
-        embed_fields.append(["Discord", ctftime_discord_link(data=ctf_data)])
-        embed_fields.append(["Credentials", ctftime_cred(data=ctf_data)])
-        embed_fields_list.append(embed_fields)
-
-    return embed_fields_list
-
-
-def parse_ctftime_json_inline(data_list: List, list_fn: List[callable]):
+def parse_ctftime_data_list(data_list: List, prize: bool = False)-> List[Dict]:
     embed_fields = []
     for data in data_list:
         field_value = ""
-        for fn in list_fn:
-            field_value += fn(data=data) + "\n"
+        field_value += ctftime_organizers(data=data) + "\n"
+        field_value += f"Weight: {ctftime_rating(data=data)} | Participants: {ctftime_participants(data=data)}" + "\n"
+        field_value += ctftime_date(data=data) + "\n"
+        if prize and data["prizes"]:
+            field_value += ctftime_prize(data=data, limit=300)
+        field_value += ctftime_id(data=data)
         fmt = ctftime_format_short(data)
-        embed_fields.append([data["title"] + f" {fmt}", field_value])
+        embed_fields.append({"name": f"{data['title']} {fmt}", "value": field_value, "inline": False})
     return embed_fields
 
-
-def parse_ctftime_data_1(data: Dict) -> List[List]:
+def parse_ctftime_data_search(data: Dict) -> List[Dict]:
     embed_fields = []
-    embed_fields.append(["Time", ctftime_date(data)])    
-    embed_fields.append(["Rating weight", ctftime_rating(data=data)])
-    embed_fields.append(["Format", ctftime_format(data=data)])
-    embed_fields.append(["Discord", ctftime_discord_link(data=data)])
+    embed_fields.append({"name": "Time", "value": ctftime_date(data=data), "inline": False})    
+    embed_fields.append({"name": "Format", "value": ctftime_format(data=data), "inline": True})
+    embed_fields.append({"name": "Rating weight", "value": ctftime_rating(data=data), "inline": True})
+    embed_fields.append({"name": "Participants", "value": ctftime_participants(data=data), "inline": True})
+    if "discord_link" in data:
+        embed_fields.append({"name": "Discord", "value": data["discord_link"], "inline": False})
+    if "prizes" in data:
+        embed_fields.append({"name": "Prize", "value": ctftime_prize(data=data, limit=900), "inline": False})
     return embed_fields
 
+def ctftime_prize(data: Dict = None, limit: int = 900):
+    # remove empty lines
+    prize="\n".join(line for line in data["prizes"].split("\n") if line.strip())
+    # and limit to 900 characters since Discord embed limit 1024 characters
+
+    if limit > 900:
+        limit = 900
+
+    if len(prize) > limit:
+        prize = prize[:limit]+"..."
+    return f"```{prize}```"
 
 def ctftime_cred(data: Dict = None):
-    return f"Username: {data['username']}\nPassword: {data['password']}"
+    cred=data["credentials"]
+    if "url" in cred:
+        return f"Join URL: {cred['url']}"
+    else:
+        return f"Username: {cred['username']}\nPassword: {cred['password']}"
 
+def ctftime_participants(data: Dict = None):
+    return data["participants"]
 
 def ctftime_date(data: Dict = None):
     start_time = int(datetime.fromisoformat(data["start"]).timestamp())

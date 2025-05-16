@@ -4,6 +4,9 @@ from json import dumps
 import discord
 from redbot.core import Config
 from .error import ApiNotFoundExeption, DataNotJsonExeption
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Filter:
@@ -65,10 +68,10 @@ def fetch_safe(url, params: Filter = None, all=False):
         data_list = fetch(url, params)
     # TODO: handle more exceptions
     except ApiNotFoundExeption as e:
-        print(e.__traceback__)
+        logger.debug(e.__traceback__)
         return
     except DataNotJsonExeption as e:
-        print(e.__traceback__)
+        logger.debug(e.__traceback__)
         return
 
     return (
@@ -107,8 +110,7 @@ def make_chunks(lst, n):
 class CTFRegData:
     id: int = None
     """
-     {
-       "ctftimeid": 1856,
+     "<ctftime_id>": {
        "role": 1099364079065370716,
        "cate": 1099364081250619392,
        "name": "Space Heroes CTF",
@@ -149,9 +151,9 @@ class CTFRegData:
                 "role": self.role,
                 "cate": self.cate,
                 "name": self.name,
-                "infom": self.infom,
-                "channel": self.channel,
-                "endtime": self.finish,
+                "info_msg": self.infom,
+                "info_ch": self.channel,
+                "finish": self.finish,
                 "archived": self.archived,
             }
         }
