@@ -8,8 +8,11 @@ A Red Discord Bot cog for managing CTF contest registration using CTFTime integr
 
 ```
 [p]repo add vcth4nh-cogs https://github.com/vcth4nh/vcth4nh-cogs
-[p]repo install vcth4nh-cogs
+[p]cog install vcth4nh-cogs ctfreg
 [p]load ctfreg
+
+[p]slash enablecog ctfreg
+[p]slash sync
 ```
 
 ### Manual Installation
