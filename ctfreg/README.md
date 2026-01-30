@@ -15,22 +15,12 @@ A Red Discord Bot cog for managing CTF contest registration using CTFTime integr
 [p]slash sync
 ```
 
-### Manual Installation
+## Uninstallation
 
-1. Navigate to your Red's cogs directory:
-   ```bash
-   cd ~/.local/share/Red-DiscordBot/cogs
-   ```
-
-2. Clone the repository:
-   ```bash
-   git clone https://github.com/vcth4nh/vcth4nh-cogs.git
-   ```
-
-3. Load the cog in Red:
-   ```
-   /load ctfreg
-   ```
+```
+[p]cog uninstall ctfreg
+[p]repo remove vcth4nh-cogs
+```
 
 ## Links
 
