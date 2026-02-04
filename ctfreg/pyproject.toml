@@ -8,4 +8,5 @@ dependencies = [
     "pytz==2025.1",
     "requests==2.32.3",
     "thefuzz==0.22.1",
+    "red-discordbot>=3.0.2", # Do not include this in info.json, as it is a dependency of the bot, not the cog
 ]
